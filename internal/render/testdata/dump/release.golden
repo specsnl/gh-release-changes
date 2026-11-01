@@ -1,0 +1,147 @@
+# Release v2.1.0
+
+* Repository: example-org/app
+* Compared with: v2.0.0
+* Issues from: example-org/app
+
+## Features
+
+### Issue #12: Exports are too slow for large lists
+
+* State: closed
+* Labels: bug, export
+* URL: https://github.com/example-org/app/issues/12
+* **Breaking change**
+* Pull requests in this release:
+  * **Breaking:** feat(12)!: replace the export API by @alice in https://github.com/example-org/app/pull/40
+  * fix(12,13): keep the filter after a reload by @carol in https://github.com/example-org/app/pull/42
+
+#### Description
+
+Exporting more than a thousand rows takes minutes.
+
+## Steps
+
+1. Open a large list
+2. Export it
+
+#### Comments
+
+##### @bob
+
+The old API loads every row at once.
+
+##### @ghost
+
+_Empty comment._
+
+_1 more comment not shown._
+
+#### Linked pull requests
+
+##### #40: feat(12)!: replace the export API
+
+* State: merged
+* Author: @alice
+* URL: https://github.com/example-org/app/pull/40
+
+Streams rows instead of loading them all.
+
+The `/export` endpoint is gone; use `/exports`.
+
+##### example-org/lib#7: Stream CSV rows
+
+* State: open
+* Author: @carol
+* URL: https://github.com/example-org/lib/pull/7
+
+### Issue #14: Export to CSV
+
+* State: closed
+* Labels: feature
+* URL: https://github.com/example-org/app/issues/14
+* Pull requests in this release:
+  * feat(14): add a CSV export by @bob in https://github.com/example-org/app/pull/41
+
+#### Description
+
+As a user I want a CSV export.
+
+#### Comments
+
+##### @alice
+
+Agreed, for the next release.
+
+#### Linked pull requests
+
+_No linked pull requests._
+
+### Pull request #44: feat: add a dark theme
+
+* Author: @carol
+* URL: https://github.com/example-org/app/pull/44
+
+#### Description
+
+Follows the system setting.
+
+## Bug fixes
+
+### Issue #13: Filter is lost after a reload
+
+* State: open
+* Labels: none
+* URL: https://github.com/example-org/app/issues/13
+* Pull requests in this release:
+  * fix(12,13): keep the filter after a reload by @carol in https://github.com/example-org/app/pull/42
+
+#### Description
+
+_No description._
+
+#### Comments
+
+_No comments._
+
+#### Linked pull requests
+
+_No linked pull requests._
+
+### Issue #15
+
+_Could not be read: Could not resolve to an Issue with the number of 15._
+
+* Pull requests in this release:
+  * fix(15): handle an empty list by @bob in https://github.com/example-org/app/pull/43
+
+### Pull request #45: fix: correct a typo in the footer
+
+* Author: @alice
+* URL: https://github.com/example-org/app/pull/45
+
+#### Description
+
+_Could not be read: Could not resolve to a PullRequest with the number of 45._
+
+## Other
+
+### Issue #16: Document the export
+
+* State: closed
+* Labels: docs
+* URL: https://github.com/example-org/app/issues/16
+* Pull requests in this release:
+  * docs(16): document the export by @alice in https://github.com/example-org/app/pull/47
+
+#### Description
+
+The export has no docs.
+
+#### Comments
+
+_No comments._
+
+#### Linked pull requests
+
+_No linked pull requests._

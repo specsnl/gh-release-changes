@@ -20,6 +20,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/specsnl/gh-release-changes/internal/changes"
 	"github.com/specsnl/gh-release-changes/internal/github"
 	"github.com/specsnl/gh-release-changes/internal/util/output"
 )
@@ -33,6 +34,15 @@ type NotesSource interface {
 	// Repo is the resolved source repository as OWNER/REPO — also when -R was
 	// not given and it came from the current directory.
 	Repo() string
+}
+
+// DetailsSource fetches the issues and pull requests dump describes.
+// *github.Client is the implementation; a test substitutes a fake.
+type DetailsSource interface {
+	// Details reads issues from issueRepo (OWNER/REPO) and pull requests from
+	// the source repository. What cannot be read is reported in the result's
+	// Unreadable maps, not as an error.
+	Details(ctx context.Context, issueRepo string, issues, pullRequests []int) (changes.Details, error)
 }
 
 // App holds everything a command needs that is not its own flags: the output
@@ -69,6 +79,10 @@ type App struct {
 	// NewNotesSource creates the NotesSource for a repository reference in the
 	// form of Repo. Commands call it once flags are resolved; a test replaces it.
 	NewNotesSource func(repo string) (NotesSource, error)
+
+	// NewDetailsSource creates the DetailsSource for a repository reference in
+	// the form of Repo; a test replaces it.
+	NewDetailsSource func(repo string) (DetailsSource, error)
 }
 
 // NewApp creates an App over the process streams with a silent logger.
@@ -84,6 +98,9 @@ func NewApp() *App {
 		Out:      output.NewDefaultWriter(),
 		LogLevel: output.SetupDefaultLogger(false),
 		NewNotesSource: func(repo string) (NotesSource, error) {
+			return github.New(repo)
+		},
+		NewDetailsSource: func(repo string) (DetailsSource, error) {
 			return github.New(repo)
 		},
 	}

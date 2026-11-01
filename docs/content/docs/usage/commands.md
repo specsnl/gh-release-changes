@@ -148,5 +148,73 @@ contract and may change or go away.
 
 ## `dump`
 
-> [!NOTE]
-> Not built yet: lands in v0.2, with the interactive tag picker.
+```shell
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] dump <tag> [--issue-repo OWNER/REPO]
+```
+
+Prints everything the writing skills (`write-release-notes`, `write-changelog`) need as one Markdown document on
+stdout:
+
+- **Every referenced issue** — the digit scopes of the titles, read from `--issue-repo` (default: the source
+  repository): title, state, labels, URL, description, comments, and the pull requests that close it
+  (GitHub's `closedByPullRequestsReferences`, merged or not), with the release's own pull requests for it.
+- **Every feature or fix without an issue** — `feat` and `fix` titles without a digit scope: title, author, URL,
+  and the pull request's description. A `fix(deps)` is a dependency update, not a fix, and is left out.
+- **Breaking changes** are marked: `* **Breaking change**` on the issue or pull request, and `**Breaking:**` on
+  the release's pull request line, as in `sort`.
+
+```markdown
+# Release v2.1.0
+
+* Repository: example-org/app
+* Compared with: v2.0.0
+* Issues from: example-org/app
+
+## Features
+
+### Issue #12: Exports are too slow for large lists
+
+* State: closed
+* Labels: bug, export
+* URL: https://github.com/example-org/app/issues/12
+* **Breaking change**
+* Pull requests in this release:
+  * **Breaking:** feat(12)!: replace the export API by @alice in https://github.com/example-org/app/pull/40
+
+#### Description
+
+…
+
+#### Comments
+
+##### @bob
+
+…
+
+#### Linked pull requests
+
+##### #40: feat(12)!: replace the export API
+
+…
+
+### Pull request #44: feat: add a dark theme
+
+* Author: @carol
+* URL: https://github.com/example-org/app/pull/44
+
+#### Description
+
+…
+```
+
+- One `##` heading per group, in the order of `sort`. An issue appears once, under the first group that
+  references it; the features and fixes without an issue follow the issues of their group. Maintenance,
+  dependency and unclassified changes without an issue are left out.
+- Descriptions and comments are GitHub's Markdown, with line endings normalised, so the same release always
+  renders the same bytes. Only the first 100 comments of an issue are shown; the dump says how many it left out.
+- An issue or pull request that cannot be read — it does not exist, the number is a pull request rather than an
+  issue, the token may not see it — is noted in place with GitHub's reason (`_Could not be read: …_`) and named
+  in a warning on stderr. The rest of the dump is still printed, and the run exits `4` rather than `0`.
+- `--issue-repo` takes `OWNER/REPO` without a host, as for `issues`; issues from another repository are written
+  as `OWNER/REPO#N`. A malformed value fails before anything is fetched, with exit code `1` and the kind
+  `invalid_repo_ref`.

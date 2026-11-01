@@ -1,0 +1,17 @@
+## What's Changed
+* feat(12)!: replace the export API by @alice in https://github.com/example-org/app/pull/40
+* feat(14): add a CSV export by @bob in https://github.com/example-org/app/pull/41
+* fix(12,13): keep the filter after a reload by @carol in https://github.com/example-org/app/pull/42
+* fix(15): handle an empty list by @bob in https://github.com/example-org/app/pull/43
+* feat: add a dark theme by @carol in https://github.com/example-org/app/pull/44
+* fix: correct a typo in the footer by @alice in https://github.com/example-org/app/pull/45
+* fix(deps): bump the date library by @bob in https://github.com/example-org/app/pull/46
+* docs(16): document the export by @alice in https://github.com/example-org/app/pull/47
+* chore: tidy the build by @alice in https://github.com/example-org/app/pull/48
+* Free-form title by @dave in https://github.com/example-org/app/pull/49
+* chore(deps): bump actions/checkout from 6 to 7 by @dependabot[bot] in https://github.com/example-org/app/pull/50
+
+## New Contributors
+* @dave made their first contribution in https://github.com/example-org/app/pull/49
+
+**Full Changelog**: https://github.com/example-org/app/compare/v2.0.0...v2.1.0

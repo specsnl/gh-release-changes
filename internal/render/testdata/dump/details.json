@@ -1,0 +1,57 @@
+{
+  "Issues": {
+    "12": {
+      "Number": 12,
+      "Title": "Exports are too slow for large lists",
+      "Body": "Exporting more than a thousand rows takes minutes.\r\n\r\n## Steps\r\n\r\n1. Open a large list\r\n2. Export it\r\n",
+      "State": "closed",
+      "URL": "https://github.com/example-org/app/issues/12",
+      "Labels": ["bug", "export"],
+      "Comments": [
+        {"Author": "bob", "Body": "The old API loads every row at once.\r\n"},
+        {"Author": "ghost", "Body": ""}
+      ],
+      "CommentCount": 3,
+      "ClosedBy": [
+        {
+          "Number": 40, "Repo": "example-org/app", "Title": "feat(12)!: replace the export API",
+          "Body": "Streams rows instead of loading them all.\r\n\r\nThe `/export` endpoint is gone; use `/exports`.",
+          "Author": "alice", "State": "merged", "URL": "https://github.com/example-org/app/pull/40"
+        },
+        {
+          "Number": 7, "Repo": "example-org/lib", "Title": "Stream CSV rows",
+          "Body": "", "Author": "carol", "State": "open", "URL": "https://github.com/example-org/lib/pull/7"
+        }
+      ]
+    },
+    "13": {
+      "Number": 13, "Title": "Filter is lost after a reload", "Body": "", "State": "open",
+      "URL": "https://github.com/example-org/app/issues/13", "Labels": [], "Comments": [],
+      "CommentCount": 0, "ClosedBy": []
+    },
+    "14": {
+      "Number": 14, "Title": "Export to CSV", "Body": "As a user I want a CSV export.", "State": "closed",
+      "URL": "https://github.com/example-org/app/issues/14", "Labels": ["feature"],
+      "Comments": [{"Author": "alice", "Body": "Agreed, for the next release."}],
+      "CommentCount": 1, "ClosedBy": []
+    },
+    "16": {
+      "Number": 16, "Title": "Document the export", "Body": "The export has no docs.", "State": "closed",
+      "URL": "https://github.com/example-org/app/issues/16", "Labels": ["docs"], "Comments": [],
+      "CommentCount": 0, "ClosedBy": []
+    }
+  },
+  "PullRequests": {
+    "44": {
+      "Number": 44, "Repo": "example-org/app", "Title": "feat: add a dark theme",
+      "Body": "Follows the system setting.", "Author": "carol", "State": "merged",
+      "URL": "https://github.com/example-org/app/pull/44"
+    }
+  },
+  "UnreadableIssues": {
+    "15": "Could not resolve to an Issue with the number of 15."
+  },
+  "UnreadablePullRequests": {
+    "45": "Could not resolve to a PullRequest with the number of 45"
+  }
+}

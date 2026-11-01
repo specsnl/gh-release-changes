@@ -22,9 +22,10 @@ import (
 	"github.com/specsnl/gh-release-changes/internal/releasechanges"
 )
 
-// Client is a REST client bound to one repository.
+// Client is a REST and GraphQL client bound to one repository.
 type Client struct {
 	rest *api.RESTClient
+	gql  *api.GraphQLClient
 	repo repository.Repository
 }
 
@@ -50,7 +51,12 @@ func NewWithOptions(repoRef string, opts api.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("create the GitHub client for %s: %w", repo.Host, err)
 	}
 
-	return &Client{rest: rest, repo: repo}, nil
+	gql, err := api.NewGraphQLClient(opts)
+	if err != nil {
+		return nil, fmt.Errorf("create the GitHub GraphQL client for %s: %w", repo.Host, err)
+	}
+
+	return &Client{rest: rest, gql: gql, repo: repo}, nil
 }
 
 // Repo returns the repository as OWNER/REPO.
