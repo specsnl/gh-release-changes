@@ -200,19 +200,29 @@ stdout:
 
 #### Description
 
+~~~markdown
 …
+~~~
 
 #### Comments
 
 ##### @bob
 
+~~~markdown
 …
+~~~
 
 #### Linked pull requests
 
 ##### #40: feat(12)!: replace the export API
 
+* State: merged
+* Author: @alice
+* URL: https://github.com/example-org/app/pull/40
+
+~~~markdown
 …
+~~~
 
 ### Pull request #44: feat: add a dark theme
 
@@ -221,14 +231,18 @@ stdout:
 
 #### Description
 
+~~~markdown
 …
+~~~
 ```
 
 - One `##` heading per group, in the order of `sort`. An issue appears once, under the first group that
   references it; the features and fixes without an issue follow the issues of their group. Maintenance,
   dependency and unclassified changes without an issue are left out.
 - Descriptions and comments are GitHub's Markdown, with line endings normalised, so the same release always
-  renders the same bytes. Only the first 100 comments of an issue are shown; the dump says how many it left out.
+  renders the same bytes. Each is quoted in a `~~~markdown` fence, so its own headings cannot be read as the
+  dump's; the fence is longer than any run of `~` in the text, so nothing inside can close it. Only the first
+  100 comments of an issue are shown; the dump says how many it left out.
 - An issue or pull request that cannot be read — it does not exist, the number is a pull request rather than an
   issue, the token may not see it — is noted in place with GitHub's reason (`_Could not be read: …_`) and named
   in a warning on stderr. The rest of the dump is still printed, and the run exits `4` rather than `0`.

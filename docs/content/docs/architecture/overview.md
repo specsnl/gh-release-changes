@@ -106,6 +106,9 @@ them. A command that prints a renderer's output unchanged is compared with that 
 `internal/render` holds the Markdown renderers. Like `internal/changes` it is pure — plain items in, text out —
 and golden-tested over the same captured bodies, under `internal/render/testdata/<renderer>/`. A renderer never
 reorders its input; it takes the display order from `changes.Sections`, and the issues of a group from
-`Section.Issues`, which sorts and deduplicates them. `render.Dump` is golden-tested over a small release built
-for it, in `internal/render/testdata/dump/` — the generated notes and the details GitHub answered — which the
-`dump` command test reuses through a fake `DetailsSource`.
+`Section.Issues`, which sorts and deduplicates them. `render.Dump` quotes every description and comment in a
+tilde fence one longer than the longest run of `~` in it (at least three): GitHub's Markdown brings its own
+headings and fences, and unquoted they would end up in the dump's outline, under the wrong issue.
+`render.Dump` is golden-tested over a small release built for it, in `internal/render/testdata/dump/` — the
+generated notes and the details GitHub answered — which the `dump` command test reuses through a fake
+`DetailsSource`.

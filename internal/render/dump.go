@@ -18,6 +18,9 @@ import (
 // not be read is noted in place, with GitHub's reason, so the dump still says
 // what the release contains.
 //
+// What was written on GitHub — descriptions and comments — is quoted in a
+// fence, so its own headings and fences cannot change the dump's structure.
+//
 // Issue references are written with refs, so issues from another repository
 // read OWNER/REPO#N; pull requests are always the source repository's.
 func Dump(release changes.Release, details changes.Details, refs IssueRefs) string {
@@ -114,12 +117,7 @@ func (d *dumper) issue(n int) {
 	}
 
 	for _, comment := range issue.Comments {
-		text := body(comment.Body)
-		if text == "" {
-			text = "_Empty comment._"
-		}
-
-		fmt.Fprintf(&d.b, "\n##### @%s\n\n%s\n", comment.Author, text)
+		fmt.Fprintf(&d.b, "\n##### @%s\n\n%s\n", comment.Author, quote(comment.Body, "_Empty comment._"))
 	}
 
 	if more := issue.CommentCount - len(issue.Comments); more > 0 {
@@ -138,7 +136,7 @@ func (d *dumper) issue(n int) {
 		fmt.Fprintf(&d.b, "* Author: @%s\n", pr.Author)
 		fmt.Fprintf(&d.b, "* URL: %s\n", pr.URL)
 
-		if text := body(pr.Body); text != "" {
+		if text := quote(pr.Body, ""); text != "" {
 			fmt.Fprintf(&d.b, "\n%s\n", text)
 		}
 	}
@@ -202,13 +200,32 @@ func (d *dumper) releaseItems(items []changes.Item) {
 }
 
 func (d *dumper) text(heading, text, empty string) {
-	fmt.Fprintf(&d.b, "\n#### %s\n\n", heading)
+	fmt.Fprintf(&d.b, "\n#### %s\n\n%s\n", heading, quote(text, empty))
+}
 
-	if text = body(text); text == "" {
-		text = empty
+// quote fences text written on GitHub, or returns empty when there is none.
+// The fence is made of tildes, one more than the longest run of them in the
+// text, so nothing inside can close it.
+func quote(text, empty string) string {
+	text = body(text)
+	if text == "" {
+		return empty
 	}
 
-	fmt.Fprintf(&d.b, "%s\n", text)
+	longest, run := 0, 0
+
+	for _, r := range text {
+		if r == '~' {
+			run++
+			longest = max(longest, run)
+		} else {
+			run = 0
+		}
+	}
+
+	fence := strings.Repeat("~", max(3, longest+1))
+
+	return fence + "markdown\n" + text + "\n" + fence
 }
 
 // prRef is #N for a pull request of the source repository, OWNER/REPO#N for

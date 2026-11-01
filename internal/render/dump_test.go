@@ -121,7 +121,28 @@ func TestDump(t *testing.T) {
 				"* URL: https://github.com/o/app/pull/3\n" +
 				"* **Breaking change**\n\n" +
 				"#### Description\n\n" +
-				"Gone.\n",
+				"~~~markdown\nGone.\n~~~\n",
+		},
+		{
+			name: "a description with headings and fences of its own",
+			release: changes.Release{Repo: "o/app", Tag: "v1.1.0", PreviousTag: "v1.0.0", Items: []changes.Item{
+				{PR: 4, Title: "feat: add a config file", Type: "feat", Author: "bob", URL: "https://github.com/o/app/pull/4", Group: changes.GroupFeatures},
+			}},
+			details: changes.Details{PullRequests: map[int]changes.PullRequest{4: {
+				Number: 4, Body: "## Example\n\n~~~~toml\nkey = 1\n~~~~\n\n```\ngh app\n```",
+			}}},
+			want: "# Release v1.1.0\n\n" +
+				"* Repository: o/app\n" +
+				"* Compared with: v1.0.0\n" +
+				"* Issues from: o/app\n\n" +
+				"## Features\n\n" +
+				"### Pull request #4: feat: add a config file\n\n" +
+				"* Author: @bob\n" +
+				"* URL: https://github.com/o/app/pull/4\n\n" +
+				"#### Description\n\n" +
+				"~~~~~markdown\n" +
+				"## Example\n\n~~~~toml\nkey = 1\n~~~~\n\n```\ngh app\n```\n" +
+				"~~~~~\n",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
