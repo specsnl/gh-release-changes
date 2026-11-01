@@ -61,9 +61,9 @@ homebrew_casks:
     directory: Casks
     hooks:
       post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/gh-release-changes"]
+        install_steps: |
+          on_macos do
+            run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/gh-release-changes"]
           end
   - <<: *cask
     name: gh-release-changes
