@@ -1,0 +1,70 @@
+version: 2
+
+project_name: gh-release-changes
+
+builds:
+  - id: gh-release-changes
+    main: .
+    binary: gh-release-changes
+    flags:
+      - -trimpath
+      - -tags=netgo
+    ldflags:
+      - -s -w
+      - -X github.com/specsnl/gh-release-changes/internal/cmd.Version={{ .Version }}
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+archives:
+  # `gh extension install` picks the release asset named exactly
+  # gh-release-changes-<os>-<arch> (plus .exe on Windows); any other name and
+  # the install fails with "no prebuilt binary".
+  - id: gh-extension
+    ids: [gh-release-changes]
+    formats: [binary]
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+  - id: homebrew
+    ids: [gh-release-changes]
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    files: [LICENSE, README.md]
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  use: github-native
+
+release:
+  github:
+    owner: specsnl
+    name: gh-release-changes
+  draft: false
+  prerelease: auto
+
+# Stable and rc are two casks, as in specsnl/labelsync: `skip_upload: auto`
+# keeps pre-release tags out of the stable cask, and `binaries` must be set
+# because it otherwise defaults to the cask name (gh-release-changes@rc).
+homebrew_casks:
+  - &cask
+    name: gh-release-changes@rc
+    ids: [homebrew]
+    binaries: [gh-release-changes]
+    repository:
+      owner: specsnl
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: "https://github.com/specsnl/gh-release-changes"
+    description: "Sort and extract the changes of a GitHub release"
+    directory: Casks
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/gh-release-changes"]
+          end
+  - <<: *cask
+    name: gh-release-changes
+    skip_upload: auto

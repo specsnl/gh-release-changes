@@ -1,0 +1,6 @@
+.env
+.DS_Store
+Taskfile.yml
+
+/gh-release-changes
+/dist/

@@ -1,0 +1,116 @@
+# https://taskfile.dev
+version: "3"
+
+includes:
+  md: ./taskfiles/Taskfile.md.yml
+  lint:
+    taskfile: ./taskfiles/Taskfile.lint.yml
+    flatten: true
+
+silent: true
+
+vars:
+  # Without the leading v, so a local build spells the version the way
+  # goreleaser's {{ .Version }} does.
+  VERSION:
+    sh: described=$(git describe --tags --always --dirty="-dev" 2>/dev/null || echo "dev"); echo "${described#v}"
+
+tasks:
+
+  dc:
+    desc: Run a docker compose command
+    internal: true
+    vars:
+      FIXUID:
+        sh: echo ${FIXUID:-$(id -u)}
+      FIXGID:
+        sh: echo ${FIXGID:-$(id -g)}
+    cmds:
+      - defer: docker compose rm --stop --force volume-init
+      - FIXUID={{ .FIXUID }} FIXGID={{ .FIXGID }} docker compose {{ .SUB_CMD }} {{ .CLI_ARGS }}
+
+  dc:run:*:
+    desc: Run a one-off docker compose command
+    vars:
+      SERVICE: '{{ index .MATCH 0 }}'
+      COMPOSE_SERVICES:
+        sh: COMPOSE_PROFILES="*" docker compose config --services
+    cmds:
+      - task: dc
+        vars:
+          SUB_CMD: 'run --rm --user $(id -u):$(id -g) {{ .SERVICE }} {{ .SUB_CMD }}'
+          CLI_ARGS: '{{ .CLI_ARGS }}'
+    requires:
+      vars:
+        - name: SERVICE
+          enum:
+            ref: .COMPOSE_SERVICES | splitLines | compact
+
+  dc:shell:
+    desc: Shell into the Go builder
+    cmds:
+      - task: dc
+        vars:
+          SUB_CMD: "run --tty --rm go-builder /bin/bash"
+
+  build:
+    desc: Build gh-release-changes for this machine
+    cmds:
+      - task: dc:run:go-builder
+        vars:
+          SUB_CMD: >-
+            env CGO_ENABLED=0 GOOS={{OS}} GOARCH={{ARCH}}
+            go build -trimpath -tags netgo
+            -ldflags "-s -w -X github.com/specsnl/gh-release-changes/internal/cmd.Version={{ .VERSION }}"
+            -o ./gh-release-changes .
+
+  install:
+    desc: Build and install this checkout as the gh extension (replaces an installed release)
+    cmds:
+      - task: build
+      - gh extension remove release-changes 2>/dev/null || true
+      - gh extension install .
+
+  tidy:check:
+    desc: Check that go.mod and go.sum are tidy
+    cmds:
+      - task: dc:run:go-builder
+        vars:
+          SUB_CMD: "go mod tidy -diff"
+
+  tidy:
+    desc: Run go mod tidy
+    cmds:
+      - task: dc:run:go-builder
+        vars:
+          SUB_CMD: "go mod tidy"
+
+  test:
+    desc: Run the Go tests
+    cmds:
+      - task: dc:run:go-builder
+        vars:
+          SUB_CMD: "go test -race ./..."
+
+  checkall:
+    desc: Run every check — the tidy check, golangci-lint, the Go tests, goreleaser check, and markdownlint
+    cmds:
+      - task: tidy:check
+      - task: lint
+      - task: test
+      - task: release:check
+      - task: md:check
+
+  release:check:
+    desc: Validate .goreleaser.yml
+    cmds:
+      - task: dc:run:goreleaser
+        vars:
+          SUB_CMD: check
+
+  release:dry-run:
+    desc: Build a snapshot release into dist/ without publishing
+    cmds:
+      - task: dc:run:goreleaser
+        vars:
+          SUB_CMD: release --snapshot --clean
