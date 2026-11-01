@@ -384,7 +384,10 @@ standalone `gh-release-changes` on `PATH`, which gh does not treat as an extensi
 
 A Hugo site on the Hextra theme under `docs/`, published to GitHub Pages at
 <https://gh-release-changes.specs.dev/>, set up the same way as labelsync's: `docs/content/` is published
-(usage and architecture pages), `docs/design.md` sits outside it and is not. Tracked in its own issue.
+(usage and architecture pages), `docs/design.md` sits outside it and is not. Hextra is a Hugo module in its own
+`docs/go.mod`, pinned to the same version as labelsync (v0.12.2) because the `footer.html` and `card.html`
+overrides are copied from there; Hugo is pinned to the same version in `compose.yml` and the `Deploy
+Documentation` workflow. The DNS record is managed in OpenTofu (specsnl/specsops-opentofu#82).
 
 ## Repository scaffolding
 

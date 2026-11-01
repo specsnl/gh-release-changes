@@ -32,6 +32,10 @@ the teardown in the output is not an error.
 | `task install`         | Build and install this checkout as the gh extension                                   |
 | `task release:check`   | Validate `.goreleaser.yml`                                                            |
 | `task release:dry-run` | Local goreleaser snapshot into `dist/`, no publishing                                 |
+| `task docs:serve`      | Hugo dev server with live reload at <http://localhost:1313>                           |
+| `task docs:preview`    | Build the static site and serve it over nginx at <http://localhost:8080>              |
+| `task docs:build`      | Build the static site into `docs/public/`                                             |
+| `task docs:mod:tidy`   | Tidy the Hextra Hugo module in `docs/go.mod`                                          |
 | `task dc:shell`        | Shell into the Go builder                                                             |
 
 Run `task checkall` before pushing; it mirrors CI.
@@ -67,7 +71,8 @@ Run `task checkall` before pushing; it mirrors CI.
     flags, output formats, exit codes.
   - **README** — only when what the tool *is*, or how it is installed, changes.
 
-  Until the docs site exists, keep `docs/design.md` in step instead.
+  Pages that describe something not built yet say so; the issue that builds it rewrites them. Keep
+  `docs/design.md` in step where a decision it records changes.
 
 - **Tests default to stdlib `testing`.** Table-driven tests, golden files under `testdata/` (rewritten from the
   current output when a change is intended), and `net/http/httptest` for the GitHub client.
@@ -122,8 +127,12 @@ The full structure is in [`docs/design.md`](docs/design.md#package-structure). `
 
 `docs/design.md` is the *plan*: goals, decisions, CLI, package structure, milestones. It is not published.
 
-`docs/` will also hold a [Hugo](https://gohugo.io) site on the [Hextra](https://github.com/imfing/hextra)
-theme, published at <https://gh-release-changes.specs.dev/>, set up like labelsync's: everything under
-`docs/content/` is published, the theme is a Hugo module in its own `docs/go.mod`, and links between content
-pages go through `{{< ref >}}`. As subsystems land, their behaviour moves from `design.md` into the
-architecture and usage pages.
+`docs/` also holds a [Hugo](https://gohugo.io) site on the [Hextra](https://github.com/imfing/hextra) theme,
+published at <https://gh-release-changes.specs.dev/>, set up like labelsync's: everything under `docs/content/`
+is published, the theme is a Hugo module in its own `docs/go.mod` (so the root `go mod tidy -diff` never sees
+it), and links between content pages go through `{{< ref >}}`; links to `design.md` use its absolute
+github.com URL. As subsystems land, their behaviour moves from `design.md` into the architecture and usage
+pages. The `Deploy Documentation` workflow publishes the site on pushes to `main` that touch `docs/`.
+
+Keep the `hugomods/hugo` tag in `compose.yml` and `hugo-version` in `.github/workflows/docs.yml` on the same
+version.

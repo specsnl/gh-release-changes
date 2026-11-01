@@ -26,3 +26,19 @@ updates:
         update-types:
           - minor
           - patch
+
+  # The Hextra theme, a Hugo module in its own docs/go.mod.
+  - package-ecosystem: gomod
+    directory: /docs
+    schedule:
+      interval: weekly
+    labels:
+      - go
+    commit-message:
+      prefix: build
+      include: scope
+    groups:
+      go-dependencies:
+        update-types:
+          - minor
+          - patch
