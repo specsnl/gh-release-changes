@@ -10,7 +10,7 @@ It backs the `github-releases` plugin in
 
 Documentation: <https://gh-release-changes.specs.dev/>
 
-> Work in progress: `items` and `version` exist so far. `sort`, `issues` and `dump` follow.
+> Work in progress: `items`, `sort` and `version` exist so far. `issues` and `dump` follow.
 
 ## Groups
 

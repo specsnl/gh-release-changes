@@ -1,0 +1,107 @@
+## What's Changed
+
+### Features
+
+* feat: add a project metadata file by @alice in https://github.com/example-org/web-components/pull/1543
+
+### Bug fixes
+
+* fix(1510): fix the SCSS import paths in the quick start docs by @bob in https://github.com/example-org/web-components/pull/1511
+* fix(1514): remove button from html, insert after JS init by @bob in https://github.com/example-org/web-components/pull/1515
+* fix: Removed unnecessary whitespace within sidemenu. (Theme: classic) by @carol in https://github.com/example-org/web-components/pull/1459
+* fix: improved accessibility on table headers with a select all checkbox by @carol in https://github.com/example-org/web-components/pull/1467
+* fix: improved a11y on expando row by @carol in https://github.com/example-org/web-components/pull/1468
+* fix: Improved a11y on language selector by @carol in https://github.com/example-org/web-components/pull/1469
+* fix: update and audit dependencies by @alice in https://github.com/example-org/web-components/pull/1487
+* fix: Enhances relation between button and expanded details row for expando rows by @bob in https://github.com/example-org/web-components/pull/1496
+* fix: set overrides to fix audit by @alice in https://github.com/example-org/web-components/pull/1497
+* fix: Improve accessibility of table checkboxes by linking labels and checkboxes and updated cursor type of label by @bob in https://github.com/example-org/web-components/pull/1504
+* fix: Improved language selector accessibility and added tests by @bob in https://github.com/example-org/web-components/pull/1505
+* fix: Replaced non-working backticks with <code> and fixes copy button copying an empty string by @bob in https://github.com/example-org/web-components/pull/1512
+* fix(e2e): unblock the e2e docs build on pnpm 11 by @alice in https://github.com/example-org/web-components/pull/1537
+* fix(sidemenu): guard nav gap against null by @alice in https://github.com/example-org/web-components/pull/1538
+* fix(core): skip type checking of dependency declaration files by @bob in https://github.com/example-org/web-components/pull/1545
+* fix: form control fonts, fieldset spacing and skip link overlay by @bob in https://github.com/example-org/web-components/pull/1548
+* fix: removes duplicated by @carol in https://github.com/example-org/web-components/pull/1563
+
+### Other
+
+* docs(437): Enhance no-JS documentation for interactive components and clarify behavior without JavaScript by @bob in https://github.com/example-org/web-components/pull/1506
+* ci: update github actions and enable npm provenance by @alice in https://github.com/example-org/web-components/pull/1439
+* ci: add NODE_AUTH_TOKEN and mark internal packages as private by @alice in https://github.com/example-org/web-components/pull/1440
+* ci: fixes Sonarqube 0.0% Coverage on New Code  by @bob in https://github.com/example-org/web-components/pull/1498
+* docs: add changelog based on Keep a Changelog by @alice in https://github.com/example-org/web-components/pull/1547
+* docs: update changelog for unreleased changes by @alice in https://github.com/example-org/web-components/pull/1561
+
+### Maintenance
+
+* chore: update visual regression source images by @alice in https://github.com/example-org/web-components/pull/1503
+* chore(pnpm): updates to support trusted publishing by @alice in https://github.com/example-org/web-components/pull/1519
+* chore: change codeowners of repo by @dave in https://github.com/example-org/web-components/pull/1520
+* chore: add a browser support policy by @alice in https://github.com/example-org/web-components/pull/1546
+* chore: ignore braces audit advisory until a patched version exists by @bob in https://github.com/example-org/web-components/pull/1564
+
+### Dependencies
+
+* chore(deps): bump actions/checkout from 6 to 6.0.2 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1443
+* chore(deps-dev): bump vitest from 4.1.7 to 4.1.8 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1445
+* chore(deps): bump shell-quote and concurrently in /examples/app by @dependabot[bot] in https://github.com/example-org/web-components/pull/1447
+* chore(deps): fix dependency issues by @alice in https://github.com/example-org/web-components/pull/1454
+* chore(deps): upgrade playwright to 1.61.0 by @alice in https://github.com/example-org/web-components/pull/1456
+* chore(deps): bump playwright from v1.61.0-jammy to v1.61.1-jammy in /e2e/playwright by @dependabot[bot] in https://github.com/example-org/web-components/pull/1458
+* chore(deps): bump actions/checkout from 6.0.2 to 7.0.0 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1461
+* chore(deps-dev): bump the lint group with 3 updates by @dependabot[bot] in https://github.com/example-org/web-components/pull/1463
+* chore(deps-dev): bump @types/node from 25.9.1 to 26.0.1 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1464
+* chore(deps-dev): bump vitest from 4.1.8 to 4.1.9 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1465
+* chore(deps-dev): bump @playwright/test from 1.61.0 to 1.61.1 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1466
+* chore(deps): bump docker/build-push-action from 7 to 7.2.0 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1471
+* chore(deps): bump docker/metadata-action from 6 to 6.1.0 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1472
+* chore(deps-dev): bump the lint group across 1 directory with 2 updates by @dependabot[bot] in https://github.com/example-org/web-components/pull/1473
+* chore(deps): bump django from 5.2.14 to 5.2.15 in /examples/app by @dependabot[bot] in https://github.com/example-org/web-components/pull/1474
+* chore(deps): bump softprops/action-gh-release from 3 to 3.0.1 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1475
+* chore(deps-dev): bump vitest from 4.1.9 to 4.1.10 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1477
+* chore(deps): bump immutable from 5.1.5 to 5.1.9 in /examples/app by @dependabot[bot] in https://github.com/example-org/web-components/pull/1481
+* chore(deps): bump shell-quote and concurrently in /examples/app by @dependabot[bot] in https://github.com/example-org/web-components/pull/1482
+* chore(deps): bump actions/checkout from 7.0.0 to 7.0.1 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1485
+* chore(deps): bump docker/metadata-action from 6.1.0 to 6.2.0 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1489
+* chore(deps-dev): bump @playwright/test from 1.61.1 to 1.62.1 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1490
+* chore(deps): bump docker/build-push-action from 7.2.0 to 7.3.0 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1491
+* chore(deps-dev): bump @types/node from 26.0.1 to 26.1.2 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1492
+* chore(deps): bump playwright from v1.61.1-jammy to v1.62.1-jammy in /e2e/playwright by @dependabot[bot] in https://github.com/example-org/web-components/pull/1493
+* chore(deps): bump django from 5.2.15 to 5.2.16 in /examples/app by @dependabot[bot] in https://github.com/example-org/web-components/pull/1495
+* chore(deps): bump softprops/action-gh-release from 3.0.1 to 3.0.2 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1499
+* chore(deps-dev): bump jsdom from 29.1.1 to 30.0.1 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1500
+* chore(deps): bump actions/download-artifact from 7 to 8 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1501
+* chore(deps-dev): bump @testing-library/jest-dom from 6.9.1 to 7.0.0 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1502
+* chore(deps-dev): bump @types/node from 26.1.2 to 26.2.0 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1507
+* chore(deps-dev): bump @testing-library/jest-dom from 7.0.0 to 7.0.1 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1508
+* chore(deps): bump highlight.js from 11.11.1 to 11.12.0 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1516
+* chore(deps-dev): bump @testing-library/user-event from 14.6.1 to 14.6.5 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1517
+* chore(deps-dev): bump the build group across 1 directory with 8 updates by @dependabot[bot] in https://github.com/example-org/web-components/pull/1518
+* chore(deps-dev): bump @testing-library/user-event from 14.6.5 to 14.6.6 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1521
+* chore(deps-dev): bump vitest from 4.1.10 to 4.1.11 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1522
+* chore(deps-dev): bump @types/node from 26.2.0 to 26.5.1 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1523
+* chore(deps): bump softprops/action-gh-release from 3.0.2 to 3.0.3 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1525
+* chore(deps): bump playwright from v1.62.1-jammy to v1.63.0-jammy in /e2e/playwright by @dependabot[bot] in https://github.com/example-org/web-components/pull/1526
+* chore(deps): fix audit issues by @alice in https://github.com/example-org/web-components/pull/1529
+* chore(deps-dev): bump vite from 8.2.2 to 8.3.0 in the build group across 1 directory by @dependabot[bot] in https://github.com/example-org/web-components/pull/1530
+* chore(deps-dev): bump stylelint from 17.14.1 to 17.15.0 in the lint group across 1 directory by @dependabot[bot] in https://github.com/example-org/web-components/pull/1531
+* chore(deps-dev): bump @playwright/test from 1.62.1 to 1.63.0 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1533
+* chore(deps): group vitest and testing-library updates by @alice in https://github.com/example-org/web-components/pull/1534
+* chore(deps): bump devalue from 5.8.1 to 5.9.2 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1535
+* chore(deps): bump docker/build-push-action from 7.3.0 to 7.4.0 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1539
+* chore(deps-dev): bump the test group across 1 directory with 4 updates by @dependabot[bot] in https://github.com/example-org/web-components/pull/1540
+* chore(deps-dev): bump sass from 1.104.0 to 1.104.1 in the build group by @dependabot[bot] in https://github.com/example-org/web-components/pull/1541
+* chore(deps-dev): bump @types/node from 26.5.1 to 26.6.1 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1542
+* chore(deps-dev): bump jsdom from 30.0.1 to 30.1.1 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1553
+* chore(deps): audit fixes by @alice in https://github.com/example-org/web-components/pull/1555
+* chore(deps): bump django from 5.2.16 to 5.2.17 in /examples/app by @dependabot[bot] in https://github.com/example-org/web-components/pull/1556
+* chore(deps-dev): bump @types/node from 26.6.1 to 26.6.2 by @dependabot[bot] in https://github.com/example-org/web-components/pull/1557
+* chore(deps-dev): bump the build group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/example-org/web-components/pull/1559
+* chore(deps-dev): bump prettier from 3.9.6 to 3.9.9 in the lint group across 1 directory by @dependabot[bot] in https://github.com/example-org/web-components/pull/1560
+* fix(deps): update devalue to 5.9.4 to fix audit failures by @bob in https://github.com/example-org/web-components/pull/1562
+* chore(deps): fix audit issues by @alice in https://github.com/example-org/web-components/pull/1566
+
+### Unclassified
+
+* Release v19.0.0 by @alice in https://github.com/example-org/web-components/pull/1565

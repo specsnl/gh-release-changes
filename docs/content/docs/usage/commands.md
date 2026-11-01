@@ -68,10 +68,41 @@ The fields, the groups and the order are described in [The `items` JSON]({{< ref
 Pull requests whose title is outside the `<type>[(<scopes>)][!]: <subject>` format land in the `unclassified`
 group and are named in a warning on stderr. They do not change the exit code.
 
-## `sort`, `issues`
+## `sort`
+
+```shell
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] sort <tag>
+```
+
+Prints the grouped "What's Changed" list as Markdown on stdout, for developers and ops:
+
+```markdown
+## What's Changed
+
+### Features
+
+* **Breaking:** feat(12)!: drop the v1 API by @alice in https://github.com/owner/repo/pull/31
+* feat(14): add an export by @bob in https://github.com/owner/repo/pull/30
+
+### Bug fixes
+
+* fix(13): keep the filter after a reload by @carol in https://github.com/owner/repo/pull/29
+```
+
+- One `###` heading per group that has items, in the order Features, Bug fixes, Other, Maintenance,
+  Dependencies, Unclassified; empty groups are left out. A release without pull requests prints `No changes.`
+- Lines keep GitHub's format, `* <title> by @<author> in <pr-url>`, so the links still render where the list is
+  pasted. Within a group they are in the [items order]({{< ref "./items-json.md" >}}).
+- A breaking change (a `!` before the colon) is prefixed with `**Breaking:**`; the title itself is unchanged.
+- Unclassified items are named in a warning on stderr, as for `items`.
+
+The output is stable — the same release always renders the same bytes — because the `sort-release-changes`
+skill prints it unchanged.
+
+## `issues`
 
 > [!NOTE]
-> Not built yet: these land in v0.1. The output formats are specified in
+> Not built yet: lands in v0.1. The output format is specified in
 > [design.md](https://github.com/specsnl/gh-release-changes/blob/main/docs/design.md#cli).
 
 ## `notes` (hidden)

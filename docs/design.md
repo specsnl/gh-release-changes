@@ -106,6 +106,8 @@ All four come from one source.
   default branch instead (`v9.9.9-doesnotexist` returned a full body) — so the CLI checks the tag (and
   `--previous-tag`, when given) first and fails with `ErrTagNotFound`. The previous tag GitHub chose is read from
   the body's `**Full Changelog**: …/compare/<previous>...<tag>` link.
+- **Breaking changes in `sort`:** the line is prefixed with `**Breaking:**` and the title is left as written, so
+  the `!` stays and GitHub's line format (`* <title> by @<author> in <pr-url>`) is kept.
 - **Unclassified items do not change the exit code.** They are shown in the Unclassified group and reported with
   a warning on stderr; enforcing the title format is the PR-title check's job, not the release tool's.
 - **Tag picker:** without a tag argument on an interactive terminal, the CLI offers the tags in semver order
