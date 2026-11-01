@@ -10,7 +10,21 @@ It backs the `github-releases` plugin in
 
 Documentation: <https://gh-release-changes.specs.dev/>
 
-> Work in progress: only `version` exists so far. `items`, `sort`, `issues` and `dump` follow.
+> Work in progress: `items`, `sort`, `issues` and `version` exist so far. `dump` follows.
+
+## Groups
+
+Every change lands in one group. The identifiers appear in the `items` JSON and are public API: they may be
+added to, never renamed.
+
+| Identifier     | What lands there                                                            |
+|----------------|-----------------------------------------------------------------------------|
+| `features`     | `feat`                                                                      |
+| `fixes`        | `fix`                                                                       |
+| `other`        | `docs test ci refactor perf style build revert`                             |
+| `maintenance`  | `chore`                                                                     |
+| `dependencies` | a `deps` or `deps-dev` scope, or a dependabot author — whatever the type    |
+| `unclassified` | titles outside the `<type>[(<scopes>)][!]: <subject>` format, never dropped |
 
 ## Install
 

@@ -121,7 +121,7 @@ gh-release-changes/
 ```
 
 The full structure is in [`docs/design.md`](docs/design.md#package-structure). `cmd`, `releasechanges`,
-`github`, `changes` and `util/` exist so far; the rest lands with the v0.1 issues.
+`github`, `changes`, `render` and `util/` exist so far; `semver` lands with the tag picker.
 
 ## Documentation
 

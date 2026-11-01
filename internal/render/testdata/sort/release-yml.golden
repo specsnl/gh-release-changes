@@ -1,0 +1,15 @@
+## What's Changed
+
+### Bug fixes
+
+* fix: resolve a record ID from another schema version by @erin in https://github.com/example-org/toolbox/pull/179
+* fix: address the critical TODOs outside the generator by @erin in https://github.com/example-org/toolbox/pull/181
+* fix: resolve record types from the type each record declares by @erin in https://github.com/example-org/toolbox/pull/184
+* fix: report what a record lookup cannot resolve by @erin in https://github.com/example-org/toolbox/pull/188
+* fix: release the type registry when a schema version is selected by @erin in https://github.com/example-org/toolbox/pull/191
+* fix: keep the previous repository copy when a download fails part way by @erin in https://github.com/example-org/toolbox/pull/192
+
+### Other
+
+* test: restore the schema version a test found, through a fixture by @erin in https://github.com/example-org/toolbox/pull/180
+* test: read the record library from a small library kept with the tests by @erin in https://github.com/example-org/toolbox/pull/190

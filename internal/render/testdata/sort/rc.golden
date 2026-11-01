@@ -1,0 +1,17 @@
+## What's Changed
+
+### Dependencies
+
+* build(deps): bump golang from 1.26.5-trixie to 1.27.0-trixie by @dependabot[bot] in https://github.com/example-org/cli/pull/113
+* build(deps): bump charm.land/bubbletea/v2 from 2.0.2 to 2.0.9 in the go-dependencies group by @dependabot[bot] in https://github.com/example-org/cli/pull/114
+* build(deps): bump golang from 1.27.0-trixie to 1.27.1-trixie by @dependabot[bot] in https://github.com/example-org/cli/pull/116
+* build(deps): bump github.com/cli/go-gh/v2 from 2.13.0 to 2.16.0 in the go-dependencies group by @dependabot[bot] in https://github.com/example-org/cli/pull/117
+* build(deps): bump golang.org/x/sync from 0.22.0 to 0.23.0 in the go-dependencies group by @dependabot[bot] in https://github.com/example-org/cli/pull/119
+* build(deps): bump github.com/cli/go-gh/v2 from 2.16.0 to 2.16.1 in the go-dependencies group by @dependabot[bot] in https://github.com/example-org/cli/pull/122
+
+### Unclassified
+
+* Track the docs Hugo module and drop the blanket dependencies label by @frank in https://github.com/example-org/cli/pull/115
+* Bump the local goreleaser image to v2.18.1 by @frank in https://github.com/example-org/cli/pull/118
+* Publish the container images through the org's shared pipeline by @frank in https://github.com/example-org/cli/pull/120
+* Stop leaving the volume-init container behind by @frank in https://github.com/example-org/cli/pull/121

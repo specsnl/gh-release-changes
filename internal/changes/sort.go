@@ -36,6 +36,20 @@ func Sections(items []Item) []Section {
 	return sections
 }
 
+// Issues returns the issue numbers the section's items reference, ascending
+// and deduplicated; nil when none of them references an issue.
+func (s Section) Issues() []int {
+	var issues []int
+
+	for _, item := range s.Items {
+		issues = append(issues, item.Issues...)
+	}
+
+	slices.Sort(issues)
+
+	return slices.Compact(issues)
+}
+
 func compare(a, b Item) int {
 	if c := cmp.Compare(groupRank(a.Group), groupRank(b.Group)); c != 0 {
 		return c

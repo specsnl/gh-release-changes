@@ -28,6 +28,14 @@ func (f *fakeNotes) GenerateNotes(_ context.Context, tag, previousTag string) (g
 	return f.notes, f.err
 }
 
+func (f *fakeNotes) Repo() string {
+	if f.repo == "" {
+		return "example-org/current"
+	}
+
+	return f.repo
+}
+
 // appWith returns an App whose NotesSource is fake.
 func appWith(fake *fakeNotes) *cmd.App {
 	app := cmd.NewApp()

@@ -56,11 +56,85 @@ token cannot see, fails with `repo_not_found`.
 
 Prints `gh-release-changes version <version>` to stdout.
 
-## `items`, `sort`, `issues`
+## `items`
 
-> [!NOTE]
-> Not built yet: these land in v0.1. The output formats are specified in
-> [design.md](https://github.com/specsnl/gh-release-changes/blob/main/docs/design.md#cli).
+```shell
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] items <tag>
+```
+
+Prints the changes of the release as one JSON object on stdout: the contract skills and automation build on.
+The fields, the groups and the order are described in [The `items` JSON]({{< ref "./items-json.md" >}}).
+
+Pull requests whose title is outside the `<type>[(<scopes>)][!]: <subject>` format land in the `unclassified`
+group and are named in a warning on stderr. They do not change the exit code.
+
+## `sort`
+
+```shell
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] sort <tag>
+```
+
+Prints the grouped "What's Changed" list as Markdown on stdout, for developers and ops:
+
+```markdown
+## What's Changed
+
+### Features
+
+* **Breaking:** feat(12)!: drop the v1 API by @alice in https://github.com/owner/repo/pull/31
+* feat(14): add an export by @bob in https://github.com/owner/repo/pull/30
+
+### Bug fixes
+
+* fix(13): keep the filter after a reload by @carol in https://github.com/owner/repo/pull/29
+```
+
+- One `###` heading per group that has items, in the order Features, Bug fixes, Other, Maintenance,
+  Dependencies, Unclassified; empty groups are left out. A release without pull requests prints `No changes.`
+- Lines keep GitHub's format, `* <title> by @<author> in <pr-url>`, so the links still render where the list is
+  pasted. Within a group they are in the [items order]({{< ref "./items-json.md" >}}).
+- A breaking change (a `!` before the colon) is prefixed with `**Breaking:**`; the title itself is unchanged.
+- Unclassified items are named in a warning on stderr, as for `items`.
+
+The output is stable — the same release always renders the same bytes — because the `sort-release-changes`
+skill prints it unchanged.
+
+## `issues`
+
+```shell
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] issues <tag>
+                   [--issue-repo OWNER/REPO] [--ticket-repo OWNER/REPO] [--full-refs]
+```
+
+Prints a plain issue list per group as Markdown on stdout, for the release ticket (PO, QA, acceptance):
+
+```markdown
+## Issues
+
+### Features
+
+* #14
+
+### Bug fixes
+
+* #12
+* #13
+```
+
+The issues are the digit scopes of the titles: `fix(12,13): …` references `#12` and `#13`. Per group they are
+listed ascending and deduplicated; groups without issues are left out, and a release without any prints
+`No issues.`
+
+| Flag                       | Default               | Meaning                                  |
+|----------------------------|-----------------------|------------------------------------------|
+| `--issue-repo OWNER/REPO`  | the source repository | The repository the digit scopes point at |
+| `--ticket-repo OWNER/REPO` | the source repository | The repository the list is pasted into   |
+| `--full-refs`              | off                   | Write every reference as `OWNER/REPO#N`  |
+
+A reference is short (`#N`) when the issue repository equals the ticket repository, compared without regard to
+case, and full (`OWNER/REPO#N`) otherwise, so it links to the right issue wherever the list is pasted. Both
+flags take `OWNER/REPO` without a host; anything else fails before anything is fetched, with exit code `1` and
+the kind `invalid_repo_ref`.
 
 ## `notes` (hidden)
 

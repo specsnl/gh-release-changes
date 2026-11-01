@@ -116,3 +116,36 @@ func TestGroups_IdentifiersAndTitles(t *testing.T) {
 		}
 	}
 }
+
+func TestSection_Issues(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		issues [][]int
+		want   []int
+	}{
+		{"none", [][]int{{}, {}}, nil},
+		{"ascending", [][]int{{300, 100}, {200}}, []int{100, 200, 300}},
+		{"deduplicated", [][]int{{7, 3}, {3}, {}, {7}}, []int{3, 7}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var section changes.Section
+			for _, issues := range tc.issues {
+				section.Items = append(section.Items, changes.Item{Issues: issues})
+			}
+
+			if got := section.Issues(); !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("Issues() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+// Collecting the issues leaves the items' own slices alone.
+func TestSection_IssuesLeavesItemsAlone(t *testing.T) {
+	item := changes.Item{Issues: []int{9, 1}}
+	changes.Section{Items: []changes.Item{item}}.Issues()
+
+	if !reflect.DeepEqual(item.Issues, []int{9, 1}) {
+		t.Errorf("item issues = %v, want them untouched", item.Issues)
+	}
+}

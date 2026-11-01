@@ -96,7 +96,9 @@ All four come from one source.
 - **Issue list format:** plain list per group. Digit scopes point at issues in the issue repo (`--issue-repo`,
   default: the source repo). A reference is short (`#N`) when the issue repo equals the ticket repo
   (`--ticket-repo`, default: the source repo) and full (`owner/repo#N`) otherwise; `--full-refs` forces the full
-  form everywhere.
+  form everywhere. Both flags take `OWNER/REPO` without a host — an issue reference has none — and the
+  comparison ignores case, as GitHub does. The list has an `## Issues` heading and a `###` heading per group,
+  mirroring `sort`, with one `* <ref>` line per issue.
 - **Range:** any tag (RC, patch or final) as target. The base is GitHub's choice, which already fits the
   release flow (verified on `minvws/nl-rdo-woo-web-private`): a final is compared with the previous final, so it
   covers the whole RC cycle (`v3.8.0` → `v3.7.1`); a first RC with the previous final (`v3.8.0-rc.1` →
@@ -106,6 +108,8 @@ All four come from one source.
   default branch instead (`v9.9.9-doesnotexist` returned a full body) — so the CLI checks the tag (and
   `--previous-tag`, when given) first and fails with `ErrTagNotFound`. The previous tag GitHub chose is read from
   the body's `**Full Changelog**: …/compare/<previous>...<tag>` link.
+- **Breaking changes in `sort`:** the line is prefixed with `**Breaking:**` and the title is left as written, so
+  the `!` stays and GitHub's line format (`* <title> by @<author> in <pr-url>`) is kept.
 - **Unclassified items do not change the exit code.** They are shown in the Unclassified group and reported with
   a warning on stderr; enforcing the title format is the PR-title check's job, not the release tool's.
 - **Tag picker:** without a tag argument on an interactive terminal, the CLI offers the tags in semver order

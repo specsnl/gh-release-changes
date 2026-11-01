@@ -29,6 +29,10 @@ import (
 // runs without HTTP.
 type NotesSource interface {
 	GenerateNotes(ctx context.Context, tag, previousTag string) (github.Notes, error)
+
+	// Repo is the resolved source repository as OWNER/REPO — also when -R was
+	// not given and it came from the current directory.
+	Repo() string
 }
 
 // App holds everything a command needs that is not its own flags: the output
