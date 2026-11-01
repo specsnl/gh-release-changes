@@ -94,10 +94,12 @@ turns the `Release` into its product on stdout:
 | `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched         |
 
 `dump` makes a second request after the notes: it asks the `DetailsSource` for every issue the items reference
-(`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). What GitHub could
-not read is rendered as a note in place and warned about on stderr after the product is written; the command
-then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`. A failure of the details request as
-a whole fails the run before anything is printed.
+(`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). An issue's linked
+pull requests are only known once it is read, so the release's pull requests an issue does not link
+(`changes.UnlinkedPullRequests`) are asked for in a third request, made only when there are any, and merged in
+(`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after
+the product is written; the command then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`.
+A failure of either details request as a whole fails the run before anything is printed.
 
 Command tests drive the whole tree with a fake `NotesSource` answering with the parser's fixtures, and compare
 stdout with golden files under `internal/cmd/testdata/<command>/`; `go test ./internal/cmd -update` rewrites

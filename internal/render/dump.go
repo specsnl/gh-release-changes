@@ -13,10 +13,11 @@ import (
 // pull requests that close it — followed by the features and fixes that
 // reference no issue, described by their own pull request.
 //
-// An issue appears once, under the first group that references it. A breaking
-// change is marked on the issue or pull request it belongs to. Whatever could
-// not be read is noted in place, with GitHub's reason, so the dump still says
-// what the release contains.
+// An issue appears once, under the first group that references it, with the
+// release's pull requests it does not link described after the ones it does.
+// A breaking change is marked on the issue or pull request it belongs to.
+// Whatever could not be read is noted in place, with GitHub's reason, so the
+// dump still says what the release contains.
 //
 // What was written on GitHub — descriptions and comments — is quoted in a
 // fence, so its own headings and fences cannot change the dump's structure.
@@ -135,11 +136,56 @@ func (d *dumper) issue(n int) {
 		fmt.Fprintf(&d.b, "* State: %s\n", pr.State)
 		fmt.Fprintf(&d.b, "* Author: @%s\n", pr.Author)
 		fmt.Fprintf(&d.b, "* URL: %s\n", pr.URL)
+		fmt.Fprintf(&d.b, "* In this release: %s\n", yesNo(d.inRelease(pr)))
 
 		if text := quote(pr.Body, ""); text != "" {
 			fmt.Fprintf(&d.b, "\n%s\n", text)
 		}
 	}
+
+	d.unlinked(issue, items)
+}
+
+// unlinked describes the release's pull requests for an issue that the issue
+// does not link, so their descriptions are not lost: a title can reference an
+// issue that GitHub knows nothing of, as in "Related to #N".
+func (d *dumper) unlinked(issue changes.Issue, items []changes.Item) {
+	items = slices.DeleteFunc(slices.Clone(items), func(item changes.Item) bool {
+		return issue.Links(d.release.Repo, item.PR)
+	})
+
+	if len(items) == 0 {
+		return
+	}
+
+	d.b.WriteString("\n#### Unlinked pull requests in this release\n")
+
+	for _, item := range items {
+		fmt.Fprintf(&d.b, "\n##### #%d: %s\n\n", item.PR, oneLine(item.Title))
+		fmt.Fprintf(&d.b, "* Author: @%s\n", item.Author)
+		fmt.Fprintf(&d.b, "* URL: %s\n", item.URL)
+
+		pr, ok := d.details.PullRequests[item.PR]
+		if !ok {
+			fmt.Fprintf(&d.b, "\n_Could not be read: %s_\n", sentence(d.details.UnreadablePullRequests[item.PR]))
+
+			continue
+		}
+
+		if text := quote(pr.Body, ""); text != "" {
+			fmt.Fprintf(&d.b, "\n%s\n", text)
+		}
+	}
+}
+
+// inRelease reports whether a pull request linked to an issue is one of the
+// release's own.
+func (d *dumper) inRelease(pr changes.PullRequest) bool {
+	if pr.Repo != "" && !strings.EqualFold(pr.Repo, d.release.Repo) {
+		return false
+	}
+
+	return slices.ContainsFunc(d.release.Items, func(item changes.Item) bool { return item.PR == pr.Number })
 }
 
 // pullRequest describes a feature or fix that references no issue. Its title,
@@ -264,6 +310,14 @@ func sentence(reason string) string {
 	}
 
 	return reason
+}
+
+func yesNo(b bool) string {
+	if b {
+		return "yes"
+	}
+
+	return "no"
 }
 
 func orNone(text string) string {

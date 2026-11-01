@@ -174,7 +174,10 @@ stdout:
 
 - **Every referenced issue** — the digit scopes of the titles, read from `--issue-repo` (default: the source
   repository): title, state, labels, URL, description, comments, and the pull requests that close it
-  (GitHub's `closedByPullRequestsReferences`, merged or not), with the release's own pull requests for it.
+  (GitHub's `closedByPullRequestsReferences`, merged or not, each marked `In this release: yes` or `no`), with
+  the release's own pull requests for it. A release pull request whose title references the issue while GitHub
+  does not link it — "Related to #12" is no closing keyword — is described under **Unlinked pull requests in
+  this release**, with its description.
 - **Every feature or fix without an issue** — `feat` and `fix` titles without a digit scope: title, author, URL,
   and the pull request's description. A `fix(deps)` is a dependency update, not a fix, and is left out.
 - **Breaking changes** are marked: `* **Breaking change**` on the issue or pull request, and `**Breaking:**` on
@@ -197,6 +200,7 @@ stdout:
 * **Breaking change**
 * Pull requests in this release:
   * **Breaking:** feat(12)!: replace the export API by @alice in https://github.com/example-org/app/pull/40
+  * fix(12,13): keep the filter after a reload by @carol in https://github.com/example-org/app/pull/42
 
 #### Description
 
@@ -219,6 +223,18 @@ stdout:
 * State: merged
 * Author: @alice
 * URL: https://github.com/example-org/app/pull/40
+* In this release: yes
+
+~~~markdown
+…
+~~~
+
+#### Unlinked pull requests in this release
+
+##### #42: fix(12,13): keep the filter after a reload
+
+* Author: @carol
+* URL: https://github.com/example-org/app/pull/42
 
 ~~~markdown
 …

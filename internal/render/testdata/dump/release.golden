@@ -48,6 +48,7 @@ _1 more comment not shown._
 * State: merged
 * Author: @alice
 * URL: https://github.com/example-org/app/pull/40
+* In this release: yes
 
 ~~~markdown
 Streams rows instead of loading them all.
@@ -60,6 +61,14 @@ The `/export` endpoint is gone; use `/exports`.
 * State: open
 * Author: @carol
 * URL: https://github.com/example-org/lib/pull/7
+* In this release: no
+
+#### Unlinked pull requests in this release
+
+##### #42: fix(12,13): keep the filter after a reload
+
+* Author: @carol
+* URL: https://github.com/example-org/app/pull/42
 
 ### Issue #14: Export to CSV
 
@@ -86,6 +95,19 @@ Agreed, for the next release.
 #### Linked pull requests
 
 _No linked pull requests._
+
+#### Unlinked pull requests in this release
+
+##### #41: feat(14): add a CSV export
+
+* Author: @bob
+* URL: https://github.com/example-org/app/pull/41
+
+~~~markdown
+Related to #14
+
+Adds `/exports?format=csv`.
+~~~
 
 ### Pull request #44: feat: add a dark theme
 
@@ -119,6 +141,13 @@ _No comments._
 #### Linked pull requests
 
 _No linked pull requests._
+
+#### Unlinked pull requests in this release
+
+##### #42: fix(12,13): keep the filter after a reload
+
+* Author: @carol
+* URL: https://github.com/example-org/app/pull/42
 
 ### Issue #15
 
@@ -159,3 +188,12 @@ _No comments._
 #### Linked pull requests
 
 _No linked pull requests._
+
+#### Unlinked pull requests in this release
+
+##### #47: docs(16): document the export
+
+* Author: @alice
+* URL: https://github.com/example-org/app/pull/47
+
+_Could not be read: Could not resolve to a PullRequest with the number of 47._
