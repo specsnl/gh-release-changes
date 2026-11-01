@@ -1,0 +1,98 @@
+[
+  {
+    "pr": 179,
+    "title": "fix: resolve a record ID from another schema version",
+    "type": "fix",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "erin",
+    "bot": false,
+    "url": "https://github.com/example-org/toolbox/pull/179",
+    "group": "fixes"
+  },
+  {
+    "pr": 181,
+    "title": "fix: address the critical TODOs outside the generator",
+    "type": "fix",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "erin",
+    "bot": false,
+    "url": "https://github.com/example-org/toolbox/pull/181",
+    "group": "fixes"
+  },
+  {
+    "pr": 184,
+    "title": "fix: resolve record types from the type each record declares",
+    "type": "fix",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "erin",
+    "bot": false,
+    "url": "https://github.com/example-org/toolbox/pull/184",
+    "group": "fixes"
+  },
+  {
+    "pr": 188,
+    "title": "fix: report what a record lookup cannot resolve",
+    "type": "fix",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "erin",
+    "bot": false,
+    "url": "https://github.com/example-org/toolbox/pull/188",
+    "group": "fixes"
+  },
+  {
+    "pr": 191,
+    "title": "fix: release the type registry when a schema version is selected",
+    "type": "fix",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "erin",
+    "bot": false,
+    "url": "https://github.com/example-org/toolbox/pull/191",
+    "group": "fixes"
+  },
+  {
+    "pr": 192,
+    "title": "fix: keep the previous repository copy when a download fails part way",
+    "type": "fix",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "erin",
+    "bot": false,
+    "url": "https://github.com/example-org/toolbox/pull/192",
+    "group": "fixes"
+  },
+  {
+    "pr": 180,
+    "title": "test: restore the schema version a test found, through a fixture",
+    "type": "test",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "erin",
+    "bot": false,
+    "url": "https://github.com/example-org/toolbox/pull/180",
+    "group": "other"
+  },
+  {
+    "pr": 190,
+    "title": "test: read the record library from a small library kept with the tests",
+    "type": "test",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "erin",
+    "bot": false,
+    "url": "https://github.com/example-org/toolbox/pull/190",
+    "group": "other"
+  }
+]

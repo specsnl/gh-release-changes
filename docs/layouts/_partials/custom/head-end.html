@@ -1,0 +1,19 @@
+<style>
+  /* Brand primary color — specs.nl blue (HSL 213°, 42%, 50%).
+     Hextra derives its full primary-100…900 scale from these three variables. */
+  :root {
+    --primary-hue: 213deg;
+    --primary-saturation: 42%;
+    --primary-lightness: 50%;
+  }
+  /* Slightly lighter in dark mode so links and interactive elements stay legible. */
+  .dark {
+    --primary-hue: 213deg;
+    --primary-saturation: 42%;
+    --primary-lightness: 60%;
+  }
+
+  /* The "Made by specs.nl" line comes from i18n/en.yaml as Markdown, which
+     cannot carry a class; underline its link so it reads as one. */
+  .hextra-footer a { text-decoration: underline; }
+</style>

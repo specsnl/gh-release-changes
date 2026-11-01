@@ -8,6 +8,8 @@ write release notes from.
 It backs the `github-releases` plugin in
 [specsnl/agent-skills-public](https://github.com/specsnl/agent-skills-public).
 
+Documentation: <https://gh-release-changes.specs.dev/>
+
 > Work in progress: only `version` exists so far. `items`, `sort`, `issues` and `dump` follow.
 
 ## Install
@@ -42,6 +44,8 @@ Everything runs in containers through [Task](https://taskfile.dev) and Docker Co
 | `task lint`            | Run golangci-lint                                   |
 | `task checkall`        | Run every check CI runs                             |
 | `task release:dry-run` | Build a snapshot release into `dist/`               |
+| `task docs:serve`      | Serve the docs site with live reload on port 1313   |
+| `task docs:preview`    | Build the docs site and serve it on port 8080       |
 
 ## Releasing
 

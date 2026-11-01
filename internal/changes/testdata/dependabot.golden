@@ -1,0 +1,70 @@
+[
+  {
+    "pr": 1437,
+    "title": "chore: clean up pnpm overrides and update dependencies",
+    "type": "chore",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "alice",
+    "bot": false,
+    "url": "https://github.com/example-org/web-components/pull/1437",
+    "group": "maintenance"
+  },
+  {
+    "pr": 1429,
+    "title": "chore(deps-dev): bump the lint group across 1 directory with 2 updates",
+    "type": "chore",
+    "scopes": [
+      "deps-dev"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/web-components/pull/1429",
+    "group": "dependencies"
+  },
+  {
+    "pr": 1434,
+    "title": "chore(deps-dev): bump @types/node from 25.6.0 to 25.9.1",
+    "type": "chore",
+    "scopes": [
+      "deps-dev"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/web-components/pull/1434",
+    "group": "dependencies"
+  },
+  {
+    "pr": 1435,
+    "title": "chore(deps-dev): bump vitest from 4.1.5 to 4.1.7",
+    "type": "chore",
+    "scopes": [
+      "deps-dev"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/web-components/pull/1435",
+    "group": "dependencies"
+  },
+  {
+    "pr": 1438,
+    "title": "chore(deps-dev): bump the build group across 1 directory with 2 updates",
+    "type": "chore",
+    "scopes": [
+      "deps-dev"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/web-components/pull/1438",
+    "group": "dependencies"
+  }
+]

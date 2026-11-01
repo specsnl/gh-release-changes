@@ -13,13 +13,13 @@ import (
 // Renaming or moving it makes every build silently report "dev".
 var Version = "dev"
 
-func newVersionCmd() *cobra.Command {
+func newVersionCmd(app *App) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Print the gh-release-changes version",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, err := fmt.Fprintf(cmd.OutOrStdout(), "gh-release-changes version %s\n", Version)
+		RunE: func(*cobra.Command, []string) error {
+			_, err := fmt.Fprintf(app.Stdout, "gh-release-changes version %s\n", Version)
 
 			return err
 		},

@@ -1,0 +1,82 @@
+[
+  {
+    "pr": 1569,
+    "title": "fix(sidemenu): remove extra space below items with a nested list",
+    "type": "fix",
+    "scopes": [
+      "sidemenu"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "bob",
+    "bot": false,
+    "url": "https://github.com/example-org/web-components/pull/1569",
+    "group": "fixes"
+  },
+  {
+    "pr": 1577,
+    "title": "ci: only gate PRs on audit shipped dependencies",
+    "type": "ci",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "alice",
+    "bot": false,
+    "url": "https://github.com/example-org/web-components/pull/1577",
+    "group": "other"
+  },
+  {
+    "pr": 1580,
+    "title": "chore: update changelog for v19.0.1",
+    "type": "chore",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "alice",
+    "bot": false,
+    "url": "https://github.com/example-org/web-components/pull/1580",
+    "group": "maintenance"
+  },
+  {
+    "pr": 1567,
+    "title": "chore(deps): bump source-map-js from 1.2.1 to 1.2.2 in /examples/app",
+    "type": "chore",
+    "scopes": [
+      "deps"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/web-components/pull/1567",
+    "group": "dependencies"
+  },
+  {
+    "pr": 1578,
+    "title": "chore(deps-dev): bump the dev-dependencies group with 6 updates",
+    "type": "chore",
+    "scopes": [
+      "deps-dev"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/web-components/pull/1578",
+    "group": "dependencies"
+  },
+  {
+    "pr": 1579,
+    "title": "chore(deps): pin @playwright/test vesion",
+    "type": "chore",
+    "scopes": [
+      "deps"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "alice",
+    "bot": false,
+    "url": "https://github.com/example-org/web-components/pull/1579",
+    "group": "dependencies"
+  }
+]
