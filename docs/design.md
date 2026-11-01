@@ -429,11 +429,11 @@ Learned along the way:
 
 Tracked as GitHub milestones; GitHub's native "blocked by" links give the order inside them.
 
-| Milestone | Scope                                                                                      |
-|-----------|--------------------------------------------------------------------------------------------|
-| `v0.1`    | Foundation, fetch, parser, `items`, `sort`, `issues`, the docs site, release `v0.1.0-rc.1` |
-| `v0.2`    | `dump` and the interactive tag picker                                                      |
-| backlog   | `ticket`                                                                                   |
+| Milestone | Scope                                                                                         |
+|-----------|-----------------------------------------------------------------------------------------------|
+| `v0.1`    | Foundation, fetch, parser, `items`, `sort`, `issues`, the docs site, release `v0.1.0-rc.1`    |
+| `v0.2`    | `dump` and the interactive tag picker                                                         |
+| `v0.3`    | `ticket` and what it builds on: `--since-final`, `issues` formats, notes check, linking spike |
 
 The `github-releases` plugin follows `dump`, in `specsnl/agent-skills-public` (specsnl/agent-skills-public#11).
 
