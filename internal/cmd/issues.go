@@ -19,9 +19,9 @@ func newIssuesCmd(app *App) *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "issues <tag>",
+		Use:   "issues [<tag>]",
 		Short: "Print the issues of a release per group, for the release ticket",
-		Args:  cobra.ExactArgs(1),
+		Args:  tagArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			for _, f := range []struct{ name, value string }{{"--issue-repo", issueRepo}, {"--ticket-repo", ticketRepo}} {
 				if f.value != "" && !isOwnerRepo(f.value) {
@@ -30,7 +30,12 @@ func newIssuesCmd(app *App) *cobra.Command {
 				}
 			}
 
-			release, err := app.loadRelease(cmd.Context(), args[0])
+			tag, err := app.resolveTag(cmd, args)
+			if err != nil {
+				return err
+			}
+
+			release, err := app.loadRelease(cmd.Context(), tag)
 			if err != nil {
 				return err
 			}

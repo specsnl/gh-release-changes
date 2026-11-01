@@ -18,11 +18,11 @@ gh-release-changes/
 ├── main.go                       # cmd.Execute(), exit.Of, the single error print
 └── internal/
     ├── releasechanges/           # errors.go: sentinels + KindOf()
-    ├── cmd/                      # one file per Cobra command; app.go holds App and the persistent flags
-    ├── github/                   # go-gh clients: tag check, generate-notes, issue details (tags to come)
+    ├── cmd/                      # one file per Cobra command; app.go holds App, tag.go the tag picker
+    ├── github/                   # go-gh clients: tag check, generate-notes, tags, issue details
     ├── changes/                  # Item/Release, Parse(), grouping and sorting, dump's Details — pure
     ├── render/                   # sort Markdown, issue list, dump Markdown — pure
-    ├── semver/                   # (v0.2) tag ordering for the picker — pure
+    ├── semver/                   # tag ordering for the picker — pure
     └── util/
         ├── exit/                 # exit codes, exit.Err, exit.Of
         └── output/               # Writer for stderr diagnostics, slog setup, TTY detection
@@ -35,8 +35,9 @@ gh-release-changes/
 | `internal/util/output`    | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})                                    |
 | `internal/cmd`            | `App`, the root and its persistent flags, `items`, `sort`, `issues`, `dump`, `version`, `notes` |
 | `internal/changes`        | Built — see [Parser]({{< ref "./parser.md" >}})                                                 |
-| `internal/github`         | Notes, issue details — see [GitHub Client]({{< ref "./github.md" >}})                           |
+| `internal/github`         | Notes, tags, issue details — see [GitHub Client]({{< ref "./github.md" >}})                     |
 | `internal/render`         | `Sort`, `Issues`, `Dump` — see [Commands](#commands)                                            |
+| `internal/semver`         | `Sort` — see [The tag](#the-tag)                                                                |
 
 ### Why `changes`, `render` and `semver` are isolated
 
@@ -59,6 +60,24 @@ flowchart LR
 ```
 
 Only `internal/github` talks to GitHub, through go-gh, so authentication and GHES hosts are gh's.
+
+## The tag
+
+Every command that takes a tag takes it as an optional argument, resolved by `App.resolveTag` in
+`internal/cmd/tag.go` before anything else is requested:
+
+1. A tag argument is used as given.
+2. Without one, the guard: unless stdin and stdout are both terminals (`output.IsTTY`), the run fails with
+   `ErrInteractiveRequired` and a hint to pass the tag. A command checks its own flags first, so a bad flag is
+   still the error reported.
+3. The `TagSource` lists the repository's tags, `semver.Sort` orders them, and the `TagPicker` asks.
+
+`semver.Sort` orders semantic versions (an optional `v`, then Semantic Versioning 2.0.0) newest first,
+pre-releases included by the specification's precedence rules, then every other tag in reverse lexical order;
+ties go by name, so the order is total. The real picker is a `charm.land/huh/v2` `Select` with type-to-filter
+and 10 visible tags, drawn on stderr because stdout is the product. `App.PickTag` is the test seam, as in
+labelsync: a test that supplies a picker also declares the run interactive, since a terminal cannot be faked
+portably.
 
 ## Commands
 

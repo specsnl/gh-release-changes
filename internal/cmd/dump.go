@@ -24,16 +24,21 @@ func newDumpCmd(app *App) *cobra.Command {
 	var issueRepo string
 
 	cmd := &cobra.Command{
-		Use:   "dump <tag>",
+		Use:   "dump [<tag>]",
 		Short: "Print the issues and pull requests of a release in detail, for the writing skills",
-		Args:  cobra.ExactArgs(1),
+		Args:  tagArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if issueRepo != "" && !isOwnerRepo(issueRepo) {
 				return fmt.Errorf("%w: --issue-repo %q (an issue reference takes OWNER/REPO, without a host)",
 					releasechanges.ErrInvalidRepoRef, issueRepo)
 			}
 
-			release, err := app.loadRelease(cmd.Context(), args[0])
+			tag, err := app.resolveTag(cmd, args)
+			if err != nil {
+				return err
+			}
+
+			release, err := app.loadRelease(cmd.Context(), tag)
 			if err != nil {
 				return err
 			}

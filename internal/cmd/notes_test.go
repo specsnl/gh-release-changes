@@ -106,10 +106,11 @@ func TestNotes_ClientFailure(t *testing.T) {
 	}
 }
 
+// Without a terminal to pick on, a missing tag is the interactive guard's.
 func TestNotes_RequiresATag(t *testing.T) {
 	_, _, _, err := runApp(t, appWith(&fakeNotes{}), nil, "notes")
-	if code := exit.Of(err); code != exit.Error {
-		t.Errorf("exit code = %s, want %s", code, exit.Error)
+	if !errors.Is(err, releasechanges.ErrInteractiveRequired) {
+		t.Errorf("error = %v, want ErrInteractiveRequired", err)
 	}
 }
 

@@ -120,8 +120,7 @@ gh-release-changes/
     └── util/                     # exit/, output/
 ```
 
-The full structure is in [`docs/design.md`](docs/design.md#package-structure). `cmd`, `releasechanges`,
-`github`, `changes`, `render` and `util/` exist so far; `semver` lands with the tag picker.
+The full structure is in [`docs/design.md`](docs/design.md#package-structure).
 
 ## Documentation
 

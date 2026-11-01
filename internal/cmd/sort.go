@@ -12,11 +12,16 @@ import (
 // ops.
 func newSortCmd(app *App) *cobra.Command {
 	return &cobra.Command{
-		Use:   "sort <tag>",
+		Use:   "sort [<tag>]",
 		Short: `Print the grouped "What's Changed" Markdown of a release`,
-		Args:  cobra.ExactArgs(1),
+		Args:  tagArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			release, err := app.loadRelease(cmd.Context(), args[0])
+			tag, err := app.resolveTag(cmd, args)
+			if err != nil {
+				return err
+			}
+
+			release, err := app.loadRelease(cmd.Context(), tag)
 			if err != nil {
 				return err
 			}

@@ -17,17 +17,15 @@ Every direct dependency, what it does, and what it was chosen over. Two rules de
 | `github.com/spf13/cobra`  | The command tree                            | yes                               |
 | `github.com/cli/go-gh/v2` | Repo resolution, REST/GraphQL clients, auth | yes (auth only there)             |
 | `golang.org/x/term`       | TTY detection for the non-interactive guard | no — `charmbracelet/x/term` there |
-
-Planned, and added by the issue that needs them:
-
-| Package             | Purpose                            | Shared with labelsync |
-|---------------------|------------------------------------|-----------------------|
-| `charm.land/huh/v2` | The tag picker (filterable select) | yes                   |
+| `charm.land/huh/v2`       | The tag picker (filterable select)          | yes                               |
 
 ## Decisions
 
 - **`golang.org/x/term` over `charmbracelet/x/term`.** Both wrap the same ioctl. go-gh already depends on
   `x/term`, so it costs nothing once go-gh lands, and nothing else here needs the charm one.
+- **huh over go-gh's `prompter`.** go-gh's prompter would cost nothing extra, but labelsync already prompts with
+  huh, and its `Select` filters and scrolls a fixed height out of the box. huh pulls in bubbletea and lipgloss as
+  transitive dependencies; nothing here uses them directly.
 - **No lipgloss.** labelsync colours its diagnostics; here the product is the output, and a few stderr lines do
   not earn the dependency.
 - **go-gh over go-github.** A gh extension should not see a token. go-gh's clients take gh's authentication and

@@ -12,17 +12,22 @@ import (
 // resolved previous tag is logged on stderr.
 func newNotesCmd(app *App) *cobra.Command {
 	return &cobra.Command{
-		Use:    "notes <tag>",
+		Use:    "notes [<tag>]",
 		Short:  "Print the raw generated release notes for a tag",
 		Hidden: true,
-		Args:   cobra.ExactArgs(1),
+		Args:   tagArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			tag, err := app.resolveTag(cmd, args)
+			if err != nil {
+				return err
+			}
+
 			source, err := app.NewNotesSource(app.Repo)
 			if err != nil {
 				return err
 			}
 
-			notes, err := source.GenerateNotes(cmd.Context(), args[0], app.PreviousTag)
+			notes, err := source.GenerateNotes(cmd.Context(), tag, app.PreviousTag)
 			if err != nil {
 				return err
 			}

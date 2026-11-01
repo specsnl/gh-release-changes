@@ -11,6 +11,7 @@ hosts are resolved the way `gh` resolves them, and the tool never sees a token.
 |-------------|--------------------------------------------------------------------------------------|
 | `client.go` | `Client`: repository resolution, the go-gh REST and GraphQL clients, error mapping   |
 | `notes.go`  | `GenerateNotes`: the tag check, `generate-notes`, the previous tag from the response |
+| `tags.go`   | `Tags`: every tag of the repository, for the tag picker, through GraphQL             |
 | `issues.go` | `Details`: issues and pull requests for `dump`, through GraphQL                      |
 
 ## The repository
@@ -38,6 +39,13 @@ The release body is never read: it is editable, the generated notes are not.
 The result is a `Notes{Body, PreviousTag}`. `PreviousTag` is `--previous-tag` when given, and otherwise read from
 the `**Full Changelog**: …/compare/<previous>...<tag>` line GitHub ends the body with. A first release links to
 `…/commits/<tag>` instead and has no previous tag (`""`).
+
+## Tags
+
+`Tags(ctx)` lists every tag through the repository's `refs(refPrefix: "refs/tags/")` connection, 100 per page,
+following `endCursor` until `hasNextPage` is false. The tags come back in GitHub's order; `internal/semver` orders
+them for the picker. A missing repository (`NOT_FOUND` on the `repository` field, or a `null` repository) is
+`ErrRepoNotFound`; HTTP errors are mapped as below.
 
 ## Issue and pull request details
 
@@ -86,8 +94,9 @@ Sentinels are wrapped with `%w` and the tag or repository they are about; the ra
 
 Commands do not use `*github.Client` directly. `cmd.App` holds a `NewNotesSource` factory returning the
 `NotesSource` interface — `GenerateNotes`, and `Repo` for the resolved `OWNER/REPO` — and a `NewDetailsSource`
-factory returning the `DetailsSource` interface (`Details`), so a command test swaps in fakes and runs without
-HTTP. The client itself is tested against a `net/http/httptest` server:
-`NewWithOptions` takes go-gh `ClientOptions`, and a test passes a token and a `Transport` that redirects every
-request to the server. The GraphQL fake answers from the aliases in the query, the way GitHub does, and fails a
-test on an unused variable or fragment.
+factory returning the `DetailsSource` interface (`Details`), and a `NewTagSource` factory returning the
+`TagSource` interface (`Tags`), so a command test swaps in fakes and runs without HTTP. The client itself is
+tested against a `net/http/httptest` server: `NewWithOptions` takes go-gh `ClientOptions`, and a test passes a
+token and a `Transport` that redirects every request to the server. The GraphQL fakes answer from the query the
+way GitHub does — the details fake from its aliases, failing a test on an unused variable or fragment, and the
+tags fake page by page.

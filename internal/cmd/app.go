@@ -45,6 +45,19 @@ type DetailsSource interface {
 	Details(ctx context.Context, issueRepo string, issues, pullRequests []int) (changes.Details, error)
 }
 
+// TagSource lists the tags of the source repository, for the tag picker.
+// *github.Client is the implementation; a test substitutes a fake.
+type TagSource interface {
+	Tags(ctx context.Context) ([]string, error)
+}
+
+// TagPicker asks which of tags to use; they are in picker order already.
+//
+// It is the seam the interactive prompt is replaced through. A test that
+// supplies one also declares that the run can be asked at all — see
+// [App.canPrompt] — because a terminal is not a thing a test can portably fake.
+type TagPicker func(ctx context.Context, tags []string) (string, error)
+
 // App holds everything a command needs that is not its own flags: the output
 // streams, the handle on the debug log level, and the resolved values of the
 // persistent flags.
@@ -56,6 +69,11 @@ type App struct {
 	// Stdout is where a command writes its product — the Markdown or the JSON —
 	// as-is. Nothing else goes here.
 	Stdout io.Writer
+
+	// Stdin and Stderr are what the tag picker reads and draws on. Everything
+	// else on stderr goes through Out.
+	Stdin  io.Reader
+	Stderr io.Writer
 
 	// Out is the channel for everything that is not the product: progress,
 	// warnings, and the final error line, all on stderr.
@@ -83,24 +101,37 @@ type App struct {
 	// NewDetailsSource creates the DetailsSource for a repository reference in
 	// the form of Repo; a test replaces it.
 	NewDetailsSource func(repo string) (DetailsSource, error)
+
+	// NewTagSource creates the TagSource for a repository reference in the form
+	// of Repo; a test replaces it.
+	NewTagSource func(repo string) (TagSource, error)
+
+	// PickTag is the tag picker. Nil means the real huh Select, which is only
+	// shown on a terminal.
+	PickTag TagPicker
 }
 
 // NewApp creates an App over the process streams with a silent logger.
 //
-// Stdout, Out, and LogLevel are placeholders for the window before flags are
-// parsed — a failure during parsing still has somewhere to go — and all three
+// The streams and LogLevel are placeholders for the window before flags are
+// parsed — a failure during parsing still has somewhere to go — and all of them
 // are replaced in PersistentPreRunE by equivalents over the command's own
 // streams. A command that reads them is therefore always reading the test's
 // buffers under test.
 func NewApp() *App {
 	return &App{
 		Stdout:   os.Stdout,
+		Stdin:    os.Stdin,
+		Stderr:   os.Stderr,
 		Out:      output.NewDefaultWriter(),
 		LogLevel: output.SetupDefaultLogger(false),
 		NewNotesSource: func(repo string) (NotesSource, error) {
 			return github.New(repo)
 		},
 		NewDetailsSource: func(repo string) (DetailsSource, error) {
+			return github.New(repo)
+		},
+		NewTagSource: func(repo string) (TagSource, error) {
 			return github.New(repo)
 		},
 	}

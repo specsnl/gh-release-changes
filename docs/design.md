@@ -114,7 +114,10 @@ All four come from one source.
   a warning on stderr; enforcing the title format is the PR-title check's job, not the release tool's.
 - **Tag picker:** without a tag argument on an interactive terminal, the CLI offers the tags in semver order
   (newest first, 10 visible) with type-to-filter over all of them. Without a terminal a missing tag is
-  `ErrInteractiveRequired`; skills always pass the tag.
+  `ErrInteractiveRequired`; skills always pass the tag. Non-semver tags follow the semver ones. The picker is a
+  `charm.land/huh/v2` `Select` drawn on stderr, behind a `TagPicker` seam on `App`. `--previous-tag` gets no
+  picker: GitHub's base is right for the release flow, and a flag that sometimes prompts has no clean spelling
+  for "pick one".
 - **`.github/release.yml`:** `generate-notes` reads it by default. PRs it excludes are considered not worth
   mentioning and stay out. Its categories only add `###` headings above the same `* … by @… in …` lines, and the
   parser ignores headings, so the CLI works with or without the file. The target repo has none today; a fixture
@@ -240,7 +243,8 @@ gh-release-changes/
     │   └── errors.go             # sentinel errors + KindOf()
     ├── cmd/                      # one file per Cobra command
     │   ├── root.go
-    │   ├── app.go                # App struct, persistent flags, the tag argument / picker
+    │   ├── app.go                # App struct, persistent flags
+    │   ├── tag.go                # the tag argument, the interactive guard, the picker
     │   ├── items.go
     │   ├── sort.go
     │   ├── issues.go

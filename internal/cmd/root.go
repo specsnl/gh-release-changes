@@ -92,6 +92,8 @@ func (a *App) resolveFlags(cmd *cobra.Command) error {
 	a.Debug, _ = flags.GetBool(flagDebug)
 
 	a.Stdout = cmd.OutOrStdout()
+	a.Stdin = cmd.InOrStdin()
+	a.Stderr = cmd.ErrOrStderr()
 	a.Out = output.NewWriter(cmd.ErrOrStderr())
 	a.LogLevel = output.SetupLogger(cmd.ErrOrStderr(), a.Debug)
 

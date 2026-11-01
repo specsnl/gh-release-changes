@@ -12,11 +12,16 @@ import (
 // on.
 func newItemsCmd(app *App) *cobra.Command {
 	return &cobra.Command{
-		Use:   "items <tag>",
+		Use:   "items [<tag>]",
 		Short: "Print the changes of a release as JSON",
-		Args:  cobra.ExactArgs(1),
+		Args:  tagArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			release, err := app.loadRelease(cmd.Context(), args[0])
+			tag, err := app.resolveTag(cmd, args)
+			if err != nil {
+				return err
+			}
+
+			release, err := app.loadRelease(cmd.Context(), tag)
 			if err != nil {
 				return err
 			}
