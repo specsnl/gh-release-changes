@@ -5,3 +5,11 @@ linters:
     - wsl_v5
     - whitespace
     - modernize
+  settings:
+    errcheck:
+      # Diagnostics on stderr are best-effort: output.Writer has no error channel
+      # and reporting a write failure would itself need a working stream. See
+      # internal/util/output/writer.go.
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintln

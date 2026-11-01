@@ -208,6 +208,11 @@ disjoint bits and combine; `1` stays exclusive.
 Unclassified items are not an outcome: they are rendered and warned about, and the run still exits `0` — see
 [Decisions](#decisions).
 
+Bit `2` is unassigned, so the numbers stay those of labelsync (where it means drift). `internal/util/exit` holds
+the codes; a command returns an error and never calls `os.Exit`. An outcome that is not a failure travels on an
+`*exit.Err` with a nil `Err` field, and `main` maps the error to a code with `exit.Of` and prints it — or nothing,
+for a silent carrier — through `output.Writer`.
+
 ### Non-interactive guard
 
 A prompt is only ever shown when stdin and stdout are terminals. Without one, a missing tag fails immediately
@@ -267,6 +272,9 @@ text. Two consequences, the same as in labelsync:
 - **No `--output pretty|json`.** labelsync reports on a run; here the product *is* the output (Markdown or
   JSON by command), so there is no second rendering of it. Diagnostics still go through `output.Writer`.
 - **No config file, XDG paths, cache, or rate limiter.** A run is a handful of requests.
+- **A plain-text `output.Writer`.** One concrete type, no interface, no colour and no NDJSON mode: it writes
+  `info: …`, `warning: …` and `error: …` lines on stderr. labelsync styles its diagnostics with lipgloss because
+  it reports on a run; here the few lines around the product do not earn the dependency.
 
 ---
 
@@ -284,7 +292,8 @@ func KindOf(err error) string // stable kind string, or "" when no known sentine
 ```
 
 The kind strings are a public contract, for a future machine-readable error output and for skills that match
-on them. They may be added to, never renamed.
+on them. They may be added to, never renamed. `main` prints the error once, as `error: <message>` on stderr;
+Cobra's own error print and the usage block on runtime failures are silenced.
 
 | Sentinel                 | Kind string            |
 |--------------------------|------------------------|
@@ -299,9 +308,17 @@ which parses the package source for exported `Err*` variables so an untabled sen
 
 ## Output
 
-The command's product is written to stdout as-is. All other user-facing output goes through `output.Writer` on
-stderr. `log/slog` is a **debug-only diagnostic channel on stderr**, silent unless `--debug`, and never used
-for reporting.
+The command's product is written to stdout as-is, through `App.Stdout`. All other user-facing output goes
+through `output.Writer` (`Info`, `Warn`, `Error`, `WriteErr`) on stderr. `log/slog` is a **debug-only diagnostic
+channel on stderr**, silent unless `--debug`, and never used for reporting.
+
+`cmd.App` holds both streams, the slog level, and the resolved persistent flags (`-R`, `--previous-tag`,
+`--debug`). Every command is built with it, and the root's `PersistentPreRunE` rebuilds the streams over
+`cmd.OutOrStdout()` / `cmd.ErrOrStderr()`, so a test drives the whole tree with buffers. `-R` is checked for
+`[HOST/]OWNER/REPO` shape there (`ErrInvalidRepoRef`); whether the repository exists is GitHub's answer.
+
+`output.IsTTY` answers the non-interactive guard with the isatty ioctl (`golang.org/x/term`), not the file mode:
+`/dev/null` is a character device too.
 
 ---
 
@@ -335,11 +352,12 @@ Determinism deserves an explicit test: the same body parsed and rendered twice g
 
 ## Dependencies
 
-| Package                   | Purpose                                     | Shared with labelsync |
-|---------------------------|---------------------------------------------|-----------------------|
-| `github.com/spf13/cobra`  | Command tree                                | yes                   |
-| `github.com/cli/go-gh/v2` | Repo resolution, REST/GraphQL clients, auth | yes (auth only there) |
-| `charm.land/huh/v2`       | The tag picker (filterable select)          | yes                   |
+| Package                   | Purpose                                     | Shared with labelsync             |
+|---------------------------|---------------------------------------------|-----------------------------------|
+| `github.com/spf13/cobra`  | Command tree                                | yes                               |
+| `github.com/cli/go-gh/v2` | Repo resolution, REST/GraphQL clients, auth | yes (auth only there)             |
+| `charm.land/huh/v2`       | The tag picker (filterable select)          | yes                               |
+| `golang.org/x/term`       | TTY detection for the non-interactive guard | no (`charmbracelet/x/term` there) |
 
 Anything beyond these is proposed in the issue that needs it.
 
