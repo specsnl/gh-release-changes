@@ -17,6 +17,10 @@ import (
 // document: the referenced issues with their comments and linked pull
 // requests, and the features and fixes without an issue.
 //
+// The release's pull requests an issue does not link are only known once the
+// issues are read, so they are fetched in a second request, when there are
+// any.
+//
 // An issue or pull request that cannot be read is noted in the dump and warned
 // about on stderr, and the run exits 4 (skipped) rather than failing: the rest
 // of the dump is still worth writing from.
@@ -63,6 +67,15 @@ func newDumpCmd(app *App) *cobra.Command {
 			details, err := source.Details(cmd.Context(), issueRepo, changes.ReferencedIssues(release.Items), untracked)
 			if err != nil {
 				return err
+			}
+
+			if unlinked := changes.UnlinkedPullRequests(release, details.Issues); len(unlinked) > 0 {
+				more, err := source.Details(cmd.Context(), issueRepo, nil, unlinked)
+				if err != nil {
+					return err
+				}
+
+				details.Merge(more)
 			}
 
 			refs := render.IssueRefs{IssueRepo: issueRepo, TicketRepo: release.Repo}

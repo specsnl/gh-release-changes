@@ -1,6 +1,10 @@
 package changes
 
-import "slices"
+import (
+	"maps"
+	"slices"
+	"strings"
+)
 
 // Issue is what dump shows of a referenced issue. It is a plain struct, filled
 // in by internal/github and rendered by internal/render, which never meet.
@@ -22,6 +26,14 @@ type Issue struct {
 	// ClosedBy are the pull requests that close the issue through a closing
 	// keyword or a manual link, merged or not.
 	ClosedBy []PullRequest
+}
+
+// Links reports whether pull request pr of repo is one the issue lists in
+// ClosedBy. A pull request without a repository is taken to be repo's.
+func (i Issue) Links(repo string, pr int) bool {
+	return slices.ContainsFunc(i.ClosedBy, func(p PullRequest) bool {
+		return p.Number == pr && (p.Repo == "" || strings.EqualFold(p.Repo, repo))
+	})
 }
 
 // Comment is one comment on an issue.
@@ -57,6 +69,28 @@ type Details struct {
 	UnreadablePullRequests map[int]string
 }
 
+// Merge adds the issues and pull requests of other to d.
+func (d *Details) Merge(other Details) {
+	d.Issues = merged(d.Issues, other.Issues)
+	d.PullRequests = merged(d.PullRequests, other.PullRequests)
+	d.UnreadableIssues = merged(d.UnreadableIssues, other.UnreadableIssues)
+	d.UnreadablePullRequests = merged(d.UnreadablePullRequests, other.UnreadablePullRequests)
+}
+
+func merged[V any](dst, src map[int]V) map[int]V {
+	if len(src) == 0 {
+		return dst
+	}
+
+	if dst == nil {
+		dst = map[int]V{}
+	}
+
+	maps.Copy(dst, src)
+
+	return dst
+}
+
 // ReferencedIssues returns every issue number the items reference, ascending
 // and deduplicated: the issues dump describes.
 func ReferencedIssues(items []Item) []int {
@@ -76,4 +110,25 @@ func ReferencedIssues(items []Item) []int {
 // to describe it; a dependency update is neither, whatever its type.
 func Untracked(item Item) bool {
 	return (item.Group == GroupFeatures || item.Group == GroupFixes) && len(item.Issues) == 0
+}
+
+// UnlinkedPullRequests returns the release's pull requests that reference one
+// of issues by their title while that issue does not link them on GitHub —
+// "Related to #N" is no closing keyword — ascending and deduplicated. dump
+// fetches them to describe them under the issue, since its linked pull
+// requests do not. An issue missing from issues was not read and is skipped.
+func UnlinkedPullRequests(release Release, issues map[int]Issue) []int {
+	var prs []int
+
+	for _, item := range release.Items {
+		for _, n := range item.Issues {
+			if issue, ok := issues[n]; ok && !issue.Links(release.Repo, item.PR) {
+				prs = append(prs, item.PR)
+			}
+		}
+	}
+
+	slices.Sort(prs)
+
+	return slices.Compact(prs)
 }

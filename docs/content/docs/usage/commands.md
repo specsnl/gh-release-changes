@@ -174,7 +174,10 @@ stdout:
 
 - **Every referenced issue** — the digit scopes of the titles, read from `--issue-repo` (default: the source
   repository): title, state, labels, URL, description, comments, and the pull requests that close it
-  (GitHub's `closedByPullRequestsReferences`, merged or not), with the release's own pull requests for it.
+  (GitHub's `closedByPullRequestsReferences`, merged or not, each marked `In this release: yes` or `no`), with
+  the release's own pull requests for it. A release pull request whose title references the issue while GitHub
+  does not link it — "Related to #12" is no closing keyword — is described under **Unlinked pull requests in
+  this release**, with its description.
 - **Every feature or fix without an issue** — `feat` and `fix` titles without a digit scope: title, author, URL,
   and the pull request's description. A `fix(deps)` is a dependency update, not a fix, and is left out.
 - **Breaking changes** are marked: `* **Breaking change**` on the issue or pull request, and `**Breaking:**` on
@@ -197,22 +200,45 @@ stdout:
 * **Breaking change**
 * Pull requests in this release:
   * **Breaking:** feat(12)!: replace the export API by @alice in https://github.com/example-org/app/pull/40
+  * fix(12,13): keep the filter after a reload by @carol in https://github.com/example-org/app/pull/42
 
 #### Description
 
+~~~markdown
 …
+~~~
 
 #### Comments
 
 ##### @bob
 
+~~~markdown
 …
+~~~
 
 #### Linked pull requests
 
 ##### #40: feat(12)!: replace the export API
 
+* State: merged
+* Author: @alice
+* URL: https://github.com/example-org/app/pull/40
+* In this release: yes
+
+~~~markdown
 …
+~~~
+
+#### Unlinked pull requests in this release
+
+##### #42: fix(12,13): keep the filter after a reload
+
+* Author: @carol
+* URL: https://github.com/example-org/app/pull/42
+
+~~~markdown
+…
+~~~
 
 ### Pull request #44: feat: add a dark theme
 
@@ -221,14 +247,18 @@ stdout:
 
 #### Description
 
+~~~markdown
 …
+~~~
 ```
 
 - One `##` heading per group, in the order of `sort`. An issue appears once, under the first group that
   references it; the features and fixes without an issue follow the issues of their group. Maintenance,
   dependency and unclassified changes without an issue are left out.
 - Descriptions and comments are GitHub's Markdown, with line endings normalised, so the same release always
-  renders the same bytes. Only the first 100 comments of an issue are shown; the dump says how many it left out.
+  renders the same bytes. Each is quoted in a `~~~markdown` fence, so its own headings cannot be read as the
+  dump's; the fence is longer than any run of `~` in the text, so nothing inside can close it. Only the first
+  100 comments of an issue are shown; the dump says how many it left out.
 - An issue or pull request that cannot be read — it does not exist, the number is a pull request rather than an
   issue, the token may not see it — is noted in place with GitHub's reason (`_Could not be read: …_`) and named
   in a warning on stderr. The rest of the dump is still printed, and the run exits `4` rather than `0`.

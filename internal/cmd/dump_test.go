@@ -17,22 +17,46 @@ import (
 	"github.com/specsnl/gh-release-changes/internal/util/exit"
 )
 
-// fakeDetails is a DetailsSource that answers from memory and records what it
-// was asked for.
+// fakeDetails is a DetailsSource that answers from memory, with only what it
+// was asked for, and records every request.
 type fakeDetails struct {
 	details changes.Details
 	err     error
 
-	called               bool
-	repo, issueRepo      string
+	repo     string
+	requests []detailsRequest
+}
+
+type detailsRequest struct {
+	issueRepo            string
 	issues, pullRequests []int
 }
 
 func (f *fakeDetails) Details(_ context.Context, issueRepo string, issues, pullRequests []int) (changes.Details, error) {
-	f.called = true
-	f.issueRepo, f.issues, f.pullRequests = issueRepo, issues, pullRequests
+	f.requests = append(f.requests, detailsRequest{issueRepo, issues, pullRequests})
 
-	return f.details, f.err
+	if f.err != nil {
+		return changes.Details{}, f.err
+	}
+
+	return changes.Details{
+		Issues:                 only(f.details.Issues, issues),
+		PullRequests:           only(f.details.PullRequests, pullRequests),
+		UnreadableIssues:       only(f.details.UnreadableIssues, issues),
+		UnreadablePullRequests: only(f.details.UnreadablePullRequests, pullRequests),
+	}, nil
+}
+
+func only[V any](m map[int]V, numbers []int) map[int]V {
+	out := map[int]V{}
+
+	for _, n := range numbers {
+		if v, ok := m[n]; ok {
+			out[n] = v
+		}
+	}
+
+	return out
 }
 
 // dumpApp returns an App over the render package's dump fixture: its release
@@ -91,24 +115,80 @@ func TestDump_PrintsTheRenderedDump(t *testing.T) {
 
 	wantStderr := "warning: 1 pull request has a title outside the <type>[(<scopes>)][!]: <subject> format, listed as unclassified: #49\n" +
 		"warning: issue #15 could not be read and is noted in the dump: Could not resolve to an Issue with the number of 15.\n" +
-		"warning: pull request #45 could not be read and is noted in the dump: Could not resolve to a PullRequest with the number of 45\n"
+		"warning: pull request #45 could not be read and is noted in the dump: Could not resolve to a PullRequest with the number of 45\n" +
+		"warning: pull request #47 could not be read and is noted in the dump: Could not resolve to a PullRequest with the number of 47\n"
 	if stderr != wantStderr {
 		t.Errorf("stderr =\n%s\nwant\n%s", stderr, wantStderr)
 	}
 
-	for _, tc := range []struct {
-		name      string
-		got, want any
-	}{
-		{"repo", details.repo, "example-org/app"},
-		{"issue repo", details.issueRepo, "example-org/app"},
-		{"issues", details.issues, []int{12, 13, 14, 15, 16}},
-		{"pull requests", details.pullRequests, []int{44, 45}},
-	} {
-		if fmt.Sprint(tc.got) != fmt.Sprint(tc.want) {
-			t.Errorf("%s = %v, want %v", tc.name, tc.got, tc.want)
-		}
+	if details.repo != "example-org/app" {
+		t.Errorf("details source repo = %q, want %q", details.repo, "example-org/app")
 	}
+
+	// The issues and the features and fixes without one first; then the
+	// release's pull requests the issues turned out not to link.
+	wantRequests := fmt.Sprint([]detailsRequest{
+		{"example-org/app", []int{12, 13, 14, 15, 16}, []int{44, 45}},
+		{"example-org/app", nil, []int{41, 42, 47}},
+	})
+	if got := fmt.Sprint(details.requests); got != wantRequests {
+		t.Errorf("requests = %s, want %s", got, wantRequests)
+	}
+}
+
+// When every issue links the release's pull requests for it, the details are
+// one request.
+func TestDump_NoUnlinkedPullRequests(t *testing.T) {
+	app, _, details := dumpApp(t)
+
+	for _, n := range []int{12, 13, 14, 16} {
+		issue := details.details.Issues[n]
+		for _, pr := range []int{40, 41, 42, 47} {
+			issue.ClosedBy = append(issue.ClosedBy, changes.PullRequest{Number: pr, Repo: "example-org/app"})
+		}
+
+		details.details.Issues[n] = issue
+	}
+
+	_, stdout, _, _ := runApp(t, app, nil, "-R", "example-org/app", "dump", "v2.1.0")
+
+	if len(details.requests) != 1 {
+		t.Errorf("requests = %v, want one", details.requests)
+	}
+
+	if strings.Contains(stdout, "#### Unlinked pull requests in this release") {
+		t.Errorf("the dump lists unlinked pull requests:\n%s", stdout)
+	}
+}
+
+// A failure of the second request fails the run like the first.
+func TestDump_UnlinkedPullRequestsFailure(t *testing.T) {
+	app, _, details := dumpApp(t)
+	source := &failSecond{fakeDetails: details}
+
+	app.NewDetailsSource = func(string) (cmd.DetailsSource, error) { return source, nil }
+
+	_, stdout, _, err := runApp(t, app, nil, "dump", "v2.1.0")
+	if !errors.Is(err, releasechanges.ErrForbidden) {
+		t.Fatalf("error = %v, want ErrForbidden", err)
+	}
+
+	if stdout != "" {
+		t.Errorf("a failed run produced a product: %q", stdout)
+	}
+}
+
+// failSecond answers the first request and fails every later one.
+type failSecond struct {
+	*fakeDetails
+}
+
+func (f *failSecond) Details(ctx context.Context, issueRepo string, issues, pullRequests []int) (changes.Details, error) {
+	if len(f.requests) > 0 {
+		return changes.Details{}, fmt.Errorf("%w: example-org/app", releasechanges.ErrForbidden)
+	}
+
+	return f.fakeDetails.Details(ctx, issueRepo, issues, pullRequests)
 }
 
 func TestDump_EverythingReadable(t *testing.T) {
@@ -131,8 +211,8 @@ func TestDump_IssueRepo(t *testing.T) {
 
 	_, stdout, _, _ := runApp(t, app, nil, "-R", "example-org/app", "dump", "v2.1.0", "--issue-repo", "example-org/tracker")
 
-	if details.issueRepo != "example-org/tracker" {
-		t.Errorf("issue repo = %q, want %q", details.issueRepo, "example-org/tracker")
+	if len(details.requests) == 0 || details.requests[0].issueRepo != "example-org/tracker" {
+		t.Errorf("requests = %v, want issues from %q", details.requests, "example-org/tracker")
 	}
 
 	if !strings.Contains(stdout, "### Issue example-org/tracker#12: ") {
@@ -150,7 +230,7 @@ func TestDump_RejectsAMalformedIssueRepo(t *testing.T) {
 				t.Fatalf("error = %v, want ErrInvalidRepoRef", err)
 			}
 
-			if notes.tag != "" || details.called {
+			if notes.tag != "" || len(details.requests) > 0 {
 				t.Error("something was fetched before the flag was checked")
 			}
 
@@ -190,7 +270,7 @@ func TestDump_NotesFailure(t *testing.T) {
 		t.Fatalf("error = %v, want ErrTagNotFound", err)
 	}
 
-	if details.called {
+	if len(details.requests) > 0 {
 		t.Error("details were fetched for a tag that does not exist")
 	}
 }

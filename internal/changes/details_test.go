@@ -44,3 +44,73 @@ func TestUntracked(t *testing.T) {
 		})
 	}
 }
+
+func TestIssueLinks(t *testing.T) {
+	issue := changes.Issue{ClosedBy: []changes.PullRequest{
+		{Number: 1, Repo: "o/app"},
+		{Number: 2, Repo: "o/lib"},
+		{Number: 3},
+	}}
+
+	for _, tc := range []struct {
+		name string
+		repo string
+		pr   int
+		want bool
+	}{
+		{"linked", "o/app", 1, true},
+		{"linked, repository in another case", "O/App", 1, true},
+		{"same number in another repository", "o/app", 2, false},
+		{"no repository", "o/app", 3, true},
+		{"not linked", "o/app", 4, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := issue.Links(tc.repo, tc.pr); got != tc.want {
+				t.Errorf("Links(%q, %d) = %v, want %v", tc.repo, tc.pr, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestUnlinkedPullRequests(t *testing.T) {
+	release := changes.Release{Repo: "o/app", Items: []changes.Item{
+		{PR: 5, Issues: []int{1}},
+		{PR: 3, Issues: []int{1, 2}},
+		{PR: 4, Issues: []int{2}},
+		{PR: 6, Issues: []int{9}},
+		{PR: 7},
+	}}
+	issues := map[int]changes.Issue{
+		1: {ClosedBy: []changes.PullRequest{{Number: 5, Repo: "o/app"}}},
+		2: {ClosedBy: []changes.PullRequest{{Number: 4, Repo: "o/lib"}}},
+	}
+
+	if got, want := changes.UnlinkedPullRequests(release, issues), []int{3, 4}; !slices.Equal(got, want) {
+		t.Errorf("UnlinkedPullRequests = %v, want %v", got, want)
+	}
+}
+
+func TestDetailsMerge(t *testing.T) {
+	d := changes.Details{Issues: map[int]changes.Issue{1: {Number: 1}}}
+
+	d.Merge(changes.Details{
+		PullRequests:           map[int]changes.PullRequest{2: {Number: 2}},
+		UnreadablePullRequests: map[int]string{3: "gone"},
+	})
+
+	if _, ok := d.Issues[1]; !ok {
+		t.Error("Merge dropped an issue")
+	}
+
+	if _, ok := d.PullRequests[2]; !ok {
+		t.Error("Merge did not add the pull request")
+	}
+
+	if d.UnreadablePullRequests[3] != "gone" {
+		t.Error("Merge did not add the unreadable pull request")
+	}
+
+	if d.UnreadableIssues != nil {
+		t.Error("Merge created a map for nothing")
+	}
+}

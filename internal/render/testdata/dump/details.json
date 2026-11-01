@@ -42,6 +42,16 @@
     }
   },
   "PullRequests": {
+    "41": {
+      "Number": 41, "Repo": "example-org/app", "Title": "feat(14): add a CSV export",
+      "Body": "Related to #14\r\n\r\nAdds `/exports?format=csv`.", "Author": "bob", "State": "merged",
+      "URL": "https://github.com/example-org/app/pull/41"
+    },
+    "42": {
+      "Number": 42, "Repo": "example-org/app", "Title": "fix(12,13): keep the filter after a reload",
+      "Body": "", "Author": "carol", "State": "merged",
+      "URL": "https://github.com/example-org/app/pull/42"
+    },
     "44": {
       "Number": 44, "Repo": "example-org/app", "Title": "feat: add a dark theme",
       "Body": "Follows the system setting.", "Author": "carol", "State": "merged",
@@ -52,6 +62,7 @@
     "15": "Could not resolve to an Issue with the number of 15."
   },
   "UnreadablePullRequests": {
-    "45": "Could not resolve to a PullRequest with the number of 45"
+    "45": "Could not resolve to a PullRequest with the number of 45",
+    "47": "Could not resolve to a PullRequest with the number of 47"
   }
 }

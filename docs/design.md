@@ -199,7 +199,10 @@ Strict, matching the PR-title action:
 ### `dump`
 
 Every referenced issue (title, body, labels, state, comments and `closedByPullRequestsReferences`), plus
-`feat`/`fix` PRs without an issue, in one Markdown document, per group, with breaking changes marked. Fetched
+`feat`/`fix` PRs without an issue, in one Markdown document, per group, with breaking changes marked. What was
+written on GitHub is quoted in a `~~~markdown` fence, so its headings never mix with the dump's own. A release
+PR whose title references an issue that does not link it is described under that issue too, and each linked PR
+says whether it is in the release. Fetched
 through GraphQL, one aliased field per number and 25 numbers per query, so a release is one or two round trips.
 An issue that cannot be read is noted in the output and reported on stderr; it does not abort the dump, and
 the run exits `4`.

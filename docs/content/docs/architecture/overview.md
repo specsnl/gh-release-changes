@@ -94,10 +94,12 @@ turns the `Release` into its product on stdout:
 | `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched         |
 
 `dump` makes a second request after the notes: it asks the `DetailsSource` for every issue the items reference
-(`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). What GitHub could
-not read is rendered as a note in place and warned about on stderr after the product is written; the command
-then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`. A failure of the details request as
-a whole fails the run before anything is printed.
+(`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). An issue's linked
+pull requests are only known once it is read, so the release's pull requests an issue does not link
+(`changes.UnlinkedPullRequests`) are asked for in a third request, made only when there are any, and merged in
+(`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after
+the product is written; the command then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`.
+A failure of either details request as a whole fails the run before anything is printed.
 
 Command tests drive the whole tree with a fake `NotesSource` answering with the parser's fixtures, and compare
 stdout with golden files under `internal/cmd/testdata/<command>/`; `go test ./internal/cmd -update` rewrites
@@ -106,6 +108,9 @@ them. A command that prints a renderer's output unchanged is compared with that 
 `internal/render` holds the Markdown renderers. Like `internal/changes` it is pure — plain items in, text out —
 and golden-tested over the same captured bodies, under `internal/render/testdata/<renderer>/`. A renderer never
 reorders its input; it takes the display order from `changes.Sections`, and the issues of a group from
-`Section.Issues`, which sorts and deduplicates them. `render.Dump` is golden-tested over a small release built
-for it, in `internal/render/testdata/dump/` — the generated notes and the details GitHub answered — which the
-`dump` command test reuses through a fake `DetailsSource`.
+`Section.Issues`, which sorts and deduplicates them. `render.Dump` quotes every description and comment in a
+tilde fence one longer than the longest run of `~` in it (at least three): GitHub's Markdown brings its own
+headings and fences, and unquoted they would end up in the dump's outline, under the wrong issue.
+`render.Dump` is golden-tested over a small release built for it, in `internal/render/testdata/dump/` — the
+generated notes and the details GitHub answered — which the `dump` command test reuses through a fake
+`DetailsSource`.
