@@ -1,0 +1,134 @@
+[
+  {
+    "pr": 113,
+    "title": "build(deps): bump golang from 1.26.5-trixie to 1.27.0-trixie",
+    "type": "build",
+    "scopes": [
+      "deps"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/cli/pull/113",
+    "group": "dependencies"
+  },
+  {
+    "pr": 114,
+    "title": "build(deps): bump charm.land/bubbletea/v2 from 2.0.2 to 2.0.9 in the go-dependencies group",
+    "type": "build",
+    "scopes": [
+      "deps"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/cli/pull/114",
+    "group": "dependencies"
+  },
+  {
+    "pr": 116,
+    "title": "build(deps): bump golang from 1.27.0-trixie to 1.27.1-trixie",
+    "type": "build",
+    "scopes": [
+      "deps"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/cli/pull/116",
+    "group": "dependencies"
+  },
+  {
+    "pr": 117,
+    "title": "build(deps): bump github.com/cli/go-gh/v2 from 2.13.0 to 2.16.0 in the go-dependencies group",
+    "type": "build",
+    "scopes": [
+      "deps"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/cli/pull/117",
+    "group": "dependencies"
+  },
+  {
+    "pr": 119,
+    "title": "build(deps): bump golang.org/x/sync from 0.22.0 to 0.23.0 in the go-dependencies group",
+    "type": "build",
+    "scopes": [
+      "deps"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/cli/pull/119",
+    "group": "dependencies"
+  },
+  {
+    "pr": 122,
+    "title": "build(deps): bump github.com/cli/go-gh/v2 from 2.16.0 to 2.16.1 in the go-dependencies group",
+    "type": "build",
+    "scopes": [
+      "deps"
+    ],
+    "breaking": false,
+    "issues": [],
+    "author": "dependabot[bot]",
+    "bot": true,
+    "url": "https://github.com/example-org/cli/pull/122",
+    "group": "dependencies"
+  },
+  {
+    "pr": 115,
+    "title": "Track the docs Hugo module and drop the blanket dependencies label",
+    "type": "",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "frank",
+    "bot": false,
+    "url": "https://github.com/example-org/cli/pull/115",
+    "group": "unclassified"
+  },
+  {
+    "pr": 118,
+    "title": "Bump the local goreleaser image to v2.18.1",
+    "type": "",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "frank",
+    "bot": false,
+    "url": "https://github.com/example-org/cli/pull/118",
+    "group": "unclassified"
+  },
+  {
+    "pr": 120,
+    "title": "Publish the container images through the org's shared pipeline",
+    "type": "",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "frank",
+    "bot": false,
+    "url": "https://github.com/example-org/cli/pull/120",
+    "group": "unclassified"
+  },
+  {
+    "pr": 121,
+    "title": "Stop leaving the volume-init container behind",
+    "type": "",
+    "scopes": [],
+    "breaking": false,
+    "issues": [],
+    "author": "frank",
+    "bot": false,
+    "url": "https://github.com/example-org/cli/pull/121",
+    "group": "unclassified"
+  }
+]

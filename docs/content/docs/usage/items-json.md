@@ -5,7 +5,8 @@ weight: 3
 ---
 
 > [!NOTE]
-> Not built yet: the `items` command lands in v0.1. This is the contract it will keep.
+> The `items` command lands in v0.1. The item shape below is already what the parser produces
+> (`internal/changes`).
 
 `gh release-changes items <tag>` prints one JSON object. It is an object rather than an array so fields can be
 added without breaking consumers. **Field names and group identifiers are public API: they may be added to,
@@ -38,5 +39,9 @@ In display order:
 | `maintenance`  | Maintenance  | `chore`                                                                     |
 | `dependencies` | Dependencies | a `deps` or `deps-dev` scope, or a dependabot author — whatever the type    |
 | `unclassified` | Unclassified | titles outside the `<type>[(<scopes>)][!]: <subject>` format, never dropped |
+
+Items are listed in display order: by group as above, then by first issue number and PR number, with items
+without an issue last; dependencies by PR number. `scopes` and `issues` are always arrays, never `null`. An
+unclassified item has an empty `type`, empty `scopes` and `issues`, and `breaking: false`.
 
 How a line becomes an item is described in [Parser]({{< ref "../architecture/parser.md" >}}).

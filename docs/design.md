@@ -182,7 +182,7 @@ Strict, matching the PR-title action:
   `revert`), Maintenance (`chore`), Dependencies (`deps`/`deps-dev` scope or dependabot author),
   Unclassified (titles that do not match the format, e.g. GitHub's `Revert "…"`; always shown, never dropped).
 - Dependencies takes precedence over the type: `fix(deps): …` and `chore(deps): …` both land in Dependencies,
-  not in Bug fixes or Maintenance.
+  not in Bug fixes or Maintenance. A dependabot PR is a dependency even when its title is outside the format.
 - Issue numbers: digit scopes only (`\d+`; `e2e` and other scopes ignored), comma-separated.
   No `+`/`&`/`and` separators and no keyword fallback for titles without a type.
 - Sorting: by first issue number, then PR number (no issue → bottom); Dependencies by PR number.
@@ -345,8 +345,9 @@ Stdlib `testing` only, as in labelsync.
 | `github`  | `net/http/httptest` fake: tag check, generate-notes, 403/404 mapping to sentinels, pagination       |
 | `cmd`     | End to end against a fake `github` boundary: stdout/stderr split, exit codes, interactive guard     |
 
-The captured `generate-notes` bodies in `testdata/` cover a final release, an RC, a patch release, dependabot
-PRs, and a repo with a `.github/release.yml`.
+The captured `generate-notes` bodies in `internal/changes/testdata/` cover a final release, an RC, a patch
+release, dependabot PRs, and a repo with a `.github/release.yml`. They are anonymised — repositories, people and
+identifying titles — because the fixtures are published with the code.
 
 Determinism deserves an explicit test: the same body parsed and rendered twice gives byte-identical output.
 

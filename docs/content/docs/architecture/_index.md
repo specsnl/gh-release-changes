@@ -15,6 +15,6 @@ lands, its behaviour moves from the design plan into this section.
 | [Overview]({{< ref "./overview.md" >}})                   | Package structure, the command tree, the data flow                     |
 | [Error Handling]({{< ref "./error-handling.md" >}})       | Sentinel errors, the `%w` wrapping rule, and the kind strings          |
 | [Output & Exit Codes]({{< ref "./output.md" >}})          | `App`, `output.Writer`, the `slog` boundary, TTY detection, exit codes |
-| [Parser]({{< ref "./parser.md" >}})                       | From a `generate-notes` body to classified, sorted items               |
+| [Parser]({{< ref "./parser.md" >}})                       | From a `generate-notes` body to classified, sorted items, fixtures     |
 | [Distribution]({{< ref "./distribution.md" >}})           | The release pipeline, the gh extension and the Homebrew casks          |
 | [Library Decisions]({{< ref "./library-decisions.md" >}}) | Every direct dependency, and what it was chosen over                   |

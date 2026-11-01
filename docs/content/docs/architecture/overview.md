@@ -20,7 +20,7 @@ gh-release-changes/
     ├── releasechanges/           # errors.go: sentinels + KindOf()
     ├── cmd/                      # one file per Cobra command; app.go holds App and the persistent flags
     ├── github/                   # (v0.1) go-gh clients: tag check, generate-notes, tags, issue details
-    ├── changes/                  # (v0.1) Item/Release, Parse(), grouping and sorting — pure
+    ├── changes/                  # Item/Release, Parse(), grouping and sorting — pure
     ├── render/                   # (v0.1) sort Markdown, issue list, dump Markdown — pure
     ├── semver/                   # (v0.2) tag ordering for the picker — pure
     └── util/
@@ -34,7 +34,7 @@ gh-release-changes/
 | `internal/util/exit`        | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})    |
 | `internal/util/output`      | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})    |
 | `internal/cmd`              | `App`, the root and its persistent flags, and `version`         |
-| `internal/changes`          | Not built yet — see [Parser]({{< ref "./parser.md" >}})         |
+| `internal/changes`          | Built — see [Parser]({{< ref "./parser.md" >}})                 |
 | `internal/github`, `render` | Not built yet                                                   |
 
 ### Why `changes`, `render` and `semver` are isolated

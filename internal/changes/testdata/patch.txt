@@ -1,0 +1,10 @@
+## What's Changed
+* chore(deps): bump source-map-js from 1.2.1 to 1.2.2 in /examples/app by @dependabot[bot] in https://github.com/example-org/web-components/pull/1567
+* ci: only gate PRs on audit shipped dependencies by @alice in https://github.com/example-org/web-components/pull/1577
+* chore(deps-dev): bump the dev-dependencies group with 6 updates by @dependabot[bot] in https://github.com/example-org/web-components/pull/1578
+* fix(sidemenu): remove extra space below items with a nested list by @bob in https://github.com/example-org/web-components/pull/1569
+* chore(deps): pin @playwright/test vesion by @alice in https://github.com/example-org/web-components/pull/1579
+* chore: update changelog for v19.0.1 by @alice in https://github.com/example-org/web-components/pull/1580
+
+
+**Full Changelog**: https://github.com/example-org/web-components/compare/v19.0.0...v19.0.1

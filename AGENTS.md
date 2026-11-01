@@ -120,8 +120,8 @@ gh-release-changes/
     └── util/                     # exit/, output/
 ```
 
-The full structure is in [`docs/design.md`](docs/design.md#package-structure). `cmd`, `releasechanges` and
-`util/` exist so far; the rest lands with the v0.1 issues.
+The full structure is in [`docs/design.md`](docs/design.md#package-structure). `cmd`, `releasechanges`,
+`changes` and `util/` exist so far; the rest lands with the v0.1 issues.
 
 ## Documentation
 
