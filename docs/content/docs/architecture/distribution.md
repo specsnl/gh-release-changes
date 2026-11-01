@@ -5,6 +5,9 @@ weight: 6
 
 goreleaser builds linux, darwin and windows × amd64 and arm64 on every `v*` tag, into two archive sets.
 
+The `Release` workflow sets `GORELEASER_CURRENT_TAG` to the pushed tag. A final is usually tagged on the commit
+of its last release candidate, and with two tags on one commit goreleaser would otherwise release the RC again.
+
 ## The gh extension
 
 Raw binaries named `gh-release-changes-<os>-<arch>[.exe]`, the names `gh extension install` looks for. **These
