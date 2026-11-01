@@ -19,7 +19,7 @@ gh-release-changes/
 └── internal/
     ├── releasechanges/           # errors.go: sentinels + KindOf()
     ├── cmd/                      # one file per Cobra command; app.go holds App and the persistent flags
-    ├── github/                   # (v0.1) go-gh clients: tag check, generate-notes, tags, issue details
+    ├── github/                   # go-gh clients: tag check, generate-notes (tags, issue details to come)
     ├── changes/                  # Item/Release, Parse(), grouping and sorting — pure
     ├── render/                   # (v0.1) sort Markdown, issue list, dump Markdown — pure
     ├── semver/                   # (v0.2) tag ordering for the picker — pure
@@ -28,14 +28,15 @@ gh-release-changes/
         └── output/               # Writer for stderr diagnostics, slog setup, TTY detection
 ```
 
-| Package                     | Status                                                          |
-|-----------------------------|-----------------------------------------------------------------|
-| `internal/releasechanges`   | Built — see [Error Handling]({{< ref "./error-handling.md" >}}) |
-| `internal/util/exit`        | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})    |
-| `internal/util/output`      | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})    |
-| `internal/cmd`              | `App`, the root and its persistent flags, and `version`         |
-| `internal/changes`          | Built — see [Parser]({{< ref "./parser.md" >}})                 |
-| `internal/github`, `render` | Not built yet                                                   |
+| Package                   | Status                                                          |
+|---------------------------|-----------------------------------------------------------------|
+| `internal/releasechanges` | Built — see [Error Handling]({{< ref "./error-handling.md" >}}) |
+| `internal/util/exit`      | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})    |
+| `internal/util/output`    | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})    |
+| `internal/cmd`            | `App`, the root and its persistent flags, `version`, `notes`    |
+| `internal/changes`        | Built — see [Parser]({{< ref "./parser.md" >}})                 |
+| `internal/github`         | Notes — see [GitHub Client]({{< ref "./github.md" >}})          |
+| `internal/render`         | Not built yet                                                   |
 
 ### Why `changes`, `render` and `semver` are isolated
 

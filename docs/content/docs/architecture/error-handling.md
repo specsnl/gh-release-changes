@@ -24,17 +24,19 @@ match on them. They may be added to, never renamed.
 
 ## Sentinels
 
-| Sentinel                 | Kind string            | Raised when                                                               |
-|--------------------------|------------------------|---------------------------------------------------------------------------|
-| `ErrRepoNotFound`        | `repo_not_found`       | The repository does not exist or is not visible (a 404)                   |
-| `ErrTagNotFound`         | `tag_not_found`        | The tag does not exist — checked before `generate-notes`, which would not |
-| `ErrForbidden`           | `forbidden`            | GitHub answers 403; `generate-notes` needs Contents: write                |
-| `ErrInteractiveRequired` | `interactive_required` | A prompt is needed, but stdin and stdout are not terminals                |
-| `ErrInvalidRepoRef`      | `invalid_repo_ref`     | `-R` is not in `[HOST/]OWNER/REPO` form                                   |
+| Sentinel                 | Kind string            | Raised when                                                                                     |
+|--------------------------|------------------------|-------------------------------------------------------------------------------------------------|
+| `ErrRepoNotFound`        | `repo_not_found`       | The repository does not exist or is not visible (a 404)                                         |
+| `ErrTagNotFound`         | `tag_not_found`        | The tag (or `--previous-tag`) does not exist — checked before `generate-notes`, which would not |
+| `ErrForbidden`           | `forbidden`            | GitHub answers 403, other than a rate limit; `generate-notes` needs Contents: write             |
+| `ErrInteractiveRequired` | `interactive_required` | A prompt is needed, but stdin and stdout are not terminals                                      |
+| `ErrInvalidRepoRef`      | `invalid_repo_ref`     | `-R` is not in `[HOST/]OWNER/REPO` form                                                         |
 
 **Adding a sentinel means adding a `KindOf` case, a row here, and an entry in the `allSentinels` test table.**
 That test parses the package source for exported `Err*` variables, so an untabled sentinel fails the build
 rather than shipping without a kind.
+
+How `internal/github` maps HTTP responses onto these is on the [GitHub Client]({{< ref "./github.md" >}}) page.
 
 ## Where errors are printed
 
