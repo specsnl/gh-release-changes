@@ -37,8 +37,10 @@ cannot use the tool on it.
 ```sh
 gh release-changes sort v1.2.0            # grouped "What's Changed" Markdown
 gh release-changes issues v1.2.0          # plain issue list per group
+gh release-changes dump v1.2.0            # issue details to write release notes from
 gh release-changes items v1.2.0 | jq .    # the JSON every other output is rendered from
 ```
 
-Run it inside a clone of the repository, or pass `-R owner/repo`. The base of the comparison is GitHub's
-choice — see [Commands]({{< ref "./commands.md#the-range" >}}).
+Run it inside a clone of the repository, or pass `-R owner/repo`. Leave out the tag in a terminal to pick one
+from the repository's tags — see [Commands]({{< ref "./commands.md#the-tag" >}}). The base of the comparison is
+GitHub's choice — see [Commands]({{< ref "./commands.md#the-range" >}}).

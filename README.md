@@ -56,9 +56,8 @@ gh release-changes items v1.2.0 | jq .    # the JSON every other output is rende
 ```
 
 Leave out the tag in a terminal to pick one from the repository's tags. The base of the comparison is GitHub's
-choice; `--previous-tag <tag>` overrides it. Generating release notes
-needs **Contents: write** on the repository. Every command and flag is described in
-[Commands](https://gh-release-changes.specs.dev/docs/usage/commands/).
+choice; `--previous-tag <tag>` overrides it. Generating release notes needs **Contents: write** on the
+repository. Every command and flag is described in [Commands](https://gh-release-changes.specs.dev/docs/usage/commands/).
 
 ## Development
 
