@@ -10,8 +10,6 @@ It backs the `github-releases` plugin in
 
 Documentation: <https://gh-release-changes.specs.dev/>
 
-> Work in progress: `items`, `sort`, `issues` and `version` exist so far. `dump` follows.
-
 ## Groups
 
 Every change lands in one group. The identifiers appear in the `items` JSON and are public API: they may be
@@ -45,6 +43,20 @@ gh-release-changes version
 `specsnl/tap/gh-release-changes@rc` tracks the newest tag, release candidates included.
 
 Authentication is gh's own: `gh auth login`, `GH_TOKEN`, or `GH_HOST` for GitHub Enterprise.
+
+## Usage
+
+Run it inside a clone of the repository, or pass `-R owner/repo`:
+
+```bash
+gh release-changes sort v1.2.0            # grouped "What's Changed" Markdown
+gh release-changes issues v1.2.0          # plain issue list per group
+gh release-changes items v1.2.0 | jq .    # the JSON every other output is rendered from
+```
+
+The base of the comparison is GitHub's choice; `--previous-tag <tag>` overrides it. Generating release notes
+needs **Contents: write** on the repository. Every command and flag is described in
+[Commands](https://gh-release-changes.specs.dev/docs/usage/commands/).
 
 ## Development
 

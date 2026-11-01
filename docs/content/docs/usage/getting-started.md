@@ -34,9 +34,6 @@ cannot use the tool on it.
 
 ## 3. Render a release
 
-> [!NOTE]
-> Not built yet: `items`, `sort` and `issues` land in v0.1.
-
 ```sh
 gh release-changes sort v1.2.0            # grouped "What's Changed" Markdown
 gh release-changes issues v1.2.0          # plain issue list per group
