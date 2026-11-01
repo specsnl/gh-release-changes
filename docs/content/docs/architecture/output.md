@@ -36,8 +36,9 @@ repository exists is GitHub's answer.
 
 ## TTY detection
 
-`output.IsTTY(stream)` backs the non-interactive guard: a prompt is only shown when stdin and stdout are
-terminals, and otherwise a missing tag fails with `ErrInteractiveRequired`. It uses the isatty ioctl
+`output.IsTTY(stream)` backs the non-interactive guard: the tag picker is only shown when stdin and stdout are
+terminals, and otherwise a missing tag fails with `ErrInteractiveRequired`. The picker itself draws on stderr
+(`App.Stderr`) and reads `App.Stdin`, both rebuilt from the command's own streams like `Stdout`. It uses the isatty ioctl
 (`golang.org/x/term`), not the file mode — `/dev/null` is a character device too.
 
 ## Exit codes

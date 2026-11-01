@@ -123,13 +123,21 @@ func (r redirect) RoundTrip(req *http.Request) (*http.Response, error) {
 func newClient(t *testing.T, fake *fakeGitHub, repoRef string) *github.Client {
 	t.Helper()
 
+	fake.t = t
+
+	return newClientFor(t, fake, repoRef)
+}
+
+// newClientFor is newClient over any handler.
+func newClientFor(t *testing.T, handler http.Handler, repoRef string) *github.Client {
+	t.Helper()
+
 	t.Setenv("GH_CONFIG_DIR", t.TempDir())
 	t.Setenv("GH_HOST", "")
 	t.Setenv("GH_TOKEN", "")
 	t.Setenv("GITHUB_TOKEN", "")
 
-	fake.t = t
-	server := httptest.NewServer(fake)
+	server := httptest.NewServer(handler)
 	t.Cleanup(server.Close)
 
 	target, err := url.Parse(server.URL)

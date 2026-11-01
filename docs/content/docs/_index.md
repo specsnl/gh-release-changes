@@ -9,6 +9,3 @@ extension that reads GitHub's generated release notes and renders the changes fo
 
 Start with [Usage]({{< ref "usage" >}}) to drive the tool, and [Architecture]({{< ref "architecture" >}}) for how
 and why it works the way it does.
-
-> [!NOTE]
-> `dump` is not built yet: it lands in v0.2. Pages that describe it say so.

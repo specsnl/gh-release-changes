@@ -114,7 +114,10 @@ All four come from one source.
   a warning on stderr; enforcing the title format is the PR-title check's job, not the release tool's.
 - **Tag picker:** without a tag argument on an interactive terminal, the CLI offers the tags in semver order
   (newest first, 10 visible) with type-to-filter over all of them. Without a terminal a missing tag is
-  `ErrInteractiveRequired`; skills always pass the tag.
+  `ErrInteractiveRequired`; skills always pass the tag. Non-semver tags follow the semver ones. The picker is a
+  `charm.land/huh/v2` `Select` drawn on stderr, behind a `TagPicker` seam on `App`. `--previous-tag` gets no
+  picker: GitHub's base is right for the release flow, and a flag that sometimes prompts has no clean spelling
+  for "pick one".
 - **`.github/release.yml`:** `generate-notes` reads it by default. PRs it excludes are considered not worth
   mentioning and stay out. Its categories only add `###` headings above the same `* … by @… in …` lines, and the
   parser ignores headings, so the CLI works with or without the file. The target repo has none today; a fixture
@@ -196,8 +199,10 @@ Strict, matching the PR-title action:
 ### `dump`
 
 Every referenced issue (title, body, labels, state, comments and `closedByPullRequestsReferences`), plus
-`feat`/`fix` PRs without an issue, in one Markdown document. An issue that cannot be read is noted in the
-output and reported on stderr; it does not abort the dump.
+`feat`/`fix` PRs without an issue, in one Markdown document, per group, with breaking changes marked. Fetched
+through GraphQL, one aliased field per number and 25 numbers per query, so a release is one or two round trips.
+An issue that cannot be read is noted in the output and reported on stderr; it does not abort the dump, and
+the run exits `4`.
 
 ### Exit codes
 
@@ -238,7 +243,8 @@ gh-release-changes/
     │   └── errors.go             # sentinel errors + KindOf()
     ├── cmd/                      # one file per Cobra command
     │   ├── root.go
-    │   ├── app.go                # App struct, persistent flags, the tag argument / picker
+    │   ├── app.go                # App struct, persistent flags
+    │   ├── tag.go                # the tag argument, the interactive guard, the picker
     │   ├── items.go
     │   ├── sort.go
     │   ├── issues.go

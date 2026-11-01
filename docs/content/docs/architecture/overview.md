@@ -18,25 +18,26 @@ gh-release-changes/
 ├── main.go                       # cmd.Execute(), exit.Of, the single error print
 └── internal/
     ├── releasechanges/           # errors.go: sentinels + KindOf()
-    ├── cmd/                      # one file per Cobra command; app.go holds App and the persistent flags
-    ├── github/                   # go-gh clients: tag check, generate-notes (tags, issue details to come)
-    ├── changes/                  # Item/Release, Parse(), grouping and sorting — pure
-    ├── render/                   # sort Markdown, issue list (dump Markdown to come) — pure
-    ├── semver/                   # (v0.2) tag ordering for the picker — pure
+    ├── cmd/                      # one file per Cobra command; app.go holds App, tag.go the tag picker
+    ├── github/                   # go-gh clients: tag check, generate-notes, tags, issue details
+    ├── changes/                  # Item/Release, Parse(), grouping and sorting, dump's Details — pure
+    ├── render/                   # sort Markdown, issue list, dump Markdown — pure
+    ├── semver/                   # tag ordering for the picker — pure
     └── util/
         ├── exit/                 # exit codes, exit.Err, exit.Of
         └── output/               # Writer for stderr diagnostics, slog setup, TTY detection
 ```
 
-| Package                   | Status                                                                                  |
-|---------------------------|-----------------------------------------------------------------------------------------|
-| `internal/releasechanges` | Built — see [Error Handling]({{< ref "./error-handling.md" >}})                         |
-| `internal/util/exit`      | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})                            |
-| `internal/util/output`    | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})                            |
-| `internal/cmd`            | `App`, the root and its persistent flags, `items`, `sort`, `issues`, `version`, `notes` |
-| `internal/changes`        | Built — see [Parser]({{< ref "./parser.md" >}})                                         |
-| `internal/github`         | Notes — see [GitHub Client]({{< ref "./github.md" >}})                                  |
-| `internal/render`         | `Sort`, `Issues` — see [Commands](#commands)                                            |
+| Package                   | Status                                                                                          |
+|---------------------------|-------------------------------------------------------------------------------------------------|
+| `internal/releasechanges` | Built — see [Error Handling]({{< ref "./error-handling.md" >}})                                 |
+| `internal/util/exit`      | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})                                    |
+| `internal/util/output`    | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})                                    |
+| `internal/cmd`            | `App`, the root and its persistent flags, `items`, `sort`, `issues`, `dump`, `version`, `notes` |
+| `internal/changes`        | Built — see [Parser]({{< ref "./parser.md" >}})                                                 |
+| `internal/github`         | Notes, tags, issue details — see [GitHub Client]({{< ref "./github.md" >}})                     |
+| `internal/render`         | `Sort`, `Issues`, `Dump` — see [Commands](#commands)                                            |
+| `internal/semver`         | `Sort` — see [The tag](#the-tag)                                                                |
 
 ### Why `changes`, `render` and `semver` are isolated
 
@@ -60,6 +61,24 @@ flowchart LR
 
 Only `internal/github` talks to GitHub, through go-gh, so authentication and GHES hosts are gh's.
 
+## The tag
+
+Every command that takes a tag takes it as an optional argument, resolved by `App.resolveTag` in
+`internal/cmd/tag.go` before anything else is requested:
+
+1. A tag argument is used as given.
+2. Without one, the guard: unless stdin and stdout are both terminals (`output.IsTTY`), the run fails with
+   `ErrInteractiveRequired` and a hint to pass the tag. A command checks its own flags first, so a bad flag is
+   still the error reported.
+3. The `TagSource` lists the repository's tags, `semver.Sort` orders them, and the `TagPicker` asks.
+
+`semver.Sort` orders semantic versions (an optional `v`, then Semantic Versioning 2.0.0) newest first,
+pre-releases included by the specification's precedence rules, then every other tag in reverse lexical order;
+ties go by name, so the order is total. The real picker is a `charm.land/huh/v2` `Select` with type-to-filter
+and 10 visible tags, drawn on stderr because stdout is the product. `App.PickTag` is the test seam, as in
+labelsync: a test that supplies a picker also declares the run interactive, since a terminal cannot be faked
+portably.
+
 ## Commands
 
 Every rendering command starts with the same step, `App.loadRelease` in `internal/cmd/release.go`: create the
@@ -72,6 +91,13 @@ turns the `Release` into its product on stdout:
 | `items`  | `items.go`  | `changes.Release` marshalled as indented JSON                                                |
 | `sort`   | `sort.go`   | `render.Sort`: the grouped "What's Changed" Markdown                                         |
 | `issues` | `issues.go` | `render.Issues`, with the reference form from `--issue-repo`, `--ticket-repo`, `--full-refs` |
+| `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched         |
+
+`dump` makes a second request after the notes: it asks the `DetailsSource` for every issue the items reference
+(`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). What GitHub could
+not read is rendered as a note in place and warned about on stderr after the product is written; the command
+then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`. A failure of the details request as
+a whole fails the run before anything is printed.
 
 Command tests drive the whole tree with a fake `NotesSource` answering with the parser's fixtures, and compare
 stdout with golden files under `internal/cmd/testdata/<command>/`; `go test ./internal/cmd -update` rewrites
@@ -80,4 +106,6 @@ them. A command that prints a renderer's output unchanged is compared with that 
 `internal/render` holds the Markdown renderers. Like `internal/changes` it is pure — plain items in, text out —
 and golden-tested over the same captured bodies, under `internal/render/testdata/<renderer>/`. A renderer never
 reorders its input; it takes the display order from `changes.Sections`, and the issues of a group from
-`Section.Issues`, which sorts and deduplicates them.
+`Section.Issues`, which sorts and deduplicates them. `render.Dump` is golden-tested over a small release built
+for it, in `internal/render/testdata/dump/` — the generated notes and the details GitHub answered — which the
+`dump` command test reuses through a fake `DetailsSource`.
