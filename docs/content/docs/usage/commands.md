@@ -101,9 +101,40 @@ skill prints it unchanged.
 
 ## `issues`
 
-> [!NOTE]
-> Not built yet: lands in v0.1. The output format is specified in
-> [design.md](https://github.com/specsnl/gh-release-changes/blob/main/docs/design.md#cli).
+```shell
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] issues <tag>
+                   [--issue-repo OWNER/REPO] [--ticket-repo OWNER/REPO] [--full-refs]
+```
+
+Prints a plain issue list per group as Markdown on stdout, for the release ticket (PO, QA, acceptance):
+
+```markdown
+## Issues
+
+### Features
+
+* #14
+
+### Bug fixes
+
+* #12
+* #13
+```
+
+The issues are the digit scopes of the titles: `fix(12,13): …` references `#12` and `#13`. Per group they are
+listed ascending and deduplicated; groups without issues are left out, and a release without any prints
+`No issues.`
+
+| Flag                       | Default               | Meaning                                  |
+|----------------------------|-----------------------|------------------------------------------|
+| `--issue-repo OWNER/REPO`  | the source repository | The repository the digit scopes point at |
+| `--ticket-repo OWNER/REPO` | the source repository | The repository the list is pasted into   |
+| `--full-refs`              | off                   | Write every reference as `OWNER/REPO#N`  |
+
+A reference is short (`#N`) when the issue repository equals the ticket repository, compared without regard to
+case, and full (`OWNER/REPO#N`) otherwise, so it links to the right issue wherever the list is pasted. Both
+flags take `OWNER/REPO` without a host; anything else fails before anything is fetched, with exit code `1` and
+the kind `invalid_repo_ref`.
 
 ## `notes` (hidden)
 

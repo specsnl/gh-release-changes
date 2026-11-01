@@ -65,6 +65,7 @@ for the release ticket, and an issue dump to write release notes from.`,
 
 	cmd.AddCommand(newItemsCmd(app))
 	cmd.AddCommand(newSortCmd(app))
+	cmd.AddCommand(newIssuesCmd(app))
 	cmd.AddCommand(newVersionCmd(app))
 	cmd.AddCommand(newNotesCmd(app))
 

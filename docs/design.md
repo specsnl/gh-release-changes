@@ -96,7 +96,9 @@ All four come from one source.
 - **Issue list format:** plain list per group. Digit scopes point at issues in the issue repo (`--issue-repo`,
   default: the source repo). A reference is short (`#N`) when the issue repo equals the ticket repo
   (`--ticket-repo`, default: the source repo) and full (`owner/repo#N`) otherwise; `--full-refs` forces the full
-  form everywhere.
+  form everywhere. Both flags take `OWNER/REPO` without a host — an issue reference has none — and the
+  comparison ignores case, as GitHub does. The list has an `## Issues` heading and a `###` heading per group,
+  mirroring `sort`, with one `* <ref>` line per issue.
 - **Range:** any tag (RC, patch or final) as target. The base is GitHub's choice, which already fits the
   release flow (verified on `minvws/nl-rdo-woo-web-private`): a final is compared with the previous final, so it
   covers the whole RC cycle (`v3.8.0` → `v3.7.1`); a first RC with the previous final (`v3.8.0-rc.1` →

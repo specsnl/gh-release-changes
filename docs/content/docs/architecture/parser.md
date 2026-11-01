@@ -11,7 +11,7 @@ files without HTTP.
 |------------|------------------------------------------------------------------------------------------------|
 | `item.go`  | `Item`, `Release` (the [items JSON]({{< ref "../usage/items-json.md" >}})), `Group`, `Section` |
 | `parse.go` | `Parse(body) []Item`: line format, title format, classification                                |
-| `sort.go`  | `Sort(items)` and `Sections(items)`: display order                                             |
+| `sort.go`  | `Sort(items)`, `Sections(items)` and `Section.Issues()`: display order, issue deduplication    |
 
 ## Lines
 
@@ -64,7 +64,8 @@ fixes or maintenance. A dependabot pull request is a dependency even when its ti
 3. Dependencies by PR number alone.
 
 `Sections` returns the non-empty groups in that order, each with its items, for renderers that print a heading
-per group.
+per group. `Section.Issues` collects the issue numbers of a group's items, ascending and deduplicated, for the
+issue list.
 
 ## Fixtures
 
