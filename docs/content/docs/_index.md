@@ -11,5 +11,4 @@ Start with [Usage]({{< ref "usage" >}}) to drive the tool, and [Architecture]({{
 and why it works the way it does.
 
 > [!NOTE]
-> Work in progress: only `version` exists so far. `items`, `sort` and `issues` land in v0.1, `dump` in v0.2.
-> Pages that describe a command that is not built yet say so.
+> `dump` is not built yet: it lands in v0.2. Pages that describe it say so.
