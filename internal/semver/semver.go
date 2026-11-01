@@ -1,8 +1,9 @@
-// Package semver orders tags for the tag picker: semantic versions newest
-// first, pre-releases included, and every other tag after them.
+// Package semver orders tags for the tag picker — semantic versions newest
+// first, pre-releases included, and every other tag after them — and finds the
+// final release a release cycle starts from, for --since-final.
 //
 // It is pure — tag names in, tag names out — and implements only the
-// precedence rules of Semantic Versioning 2.0.0 the picker needs, with an
+// precedence rules of Semantic Versioning 2.0.0 these need, with an
 // optional leading v, which is how tags spell versions.
 package semver
 
@@ -148,4 +149,29 @@ func Sort(tags []string) []string {
 	}
 
 	return sorted
+}
+
+// PreviousFinal returns the newest final release among tags — a semantic
+// version without pre-release identifiers — with lower precedence than target:
+// the base that covers a whole release cycle. For v3.9.0-rc.2 that is v3.8.0,
+// the base GitHub picks for v3.9.0-rc.1 and for v3.9.0. It reports false when
+// target is no semantic version or no older final release is among tags.
+func PreviousFinal(tags []string, target string) (string, bool) {
+	t, ok := Parse(target)
+	if !ok {
+		return "", false
+	}
+
+	for _, name := range Sort(tags) {
+		v, ok := Parse(name)
+		if !ok {
+			break
+		}
+
+		if len(v.Prerelease) == 0 && Compare(v, t) < 0 {
+			return name, true
+		}
+	}
+
+	return "", false
 }

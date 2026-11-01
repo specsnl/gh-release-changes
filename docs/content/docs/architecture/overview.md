@@ -22,7 +22,7 @@ gh-release-changes/
     ├── github/                   # go-gh clients: tag check, generate-notes, tags, issue details
     ├── changes/                  # Item/Release, Parse(), grouping and sorting, dump's Details — pure
     ├── render/                   # sort Markdown, issue list, dump Markdown — pure
-    ├── semver/                   # tag ordering for the picker — pure
+    ├── semver/                   # tag ordering for the picker, the previous final release — pure
     └── util/
         ├── exit/                 # exit codes, exit.Err, exit.Of
         └── output/               # Writer for stderr diagnostics, slog setup, TTY detection
@@ -37,7 +37,7 @@ gh-release-changes/
 | `internal/changes`        | Built — see [Parser]({{< ref "./parser.md" >}})                                                 |
 | `internal/github`         | Notes, tags, issue details — see [GitHub Client]({{< ref "./github.md" >}})                     |
 | `internal/render`         | `Sort`, `Issues`, `Dump` — see [Commands](#commands)                                            |
-| `internal/semver`         | `Sort` — see [The tag](#the-tag)                                                                |
+| `internal/semver`         | `Sort`, `PreviousFinal` — see [The tag](#the-tag) and [The base](#the-base)                     |
 
 ### Why `changes`, `render` and `semver` are isolated
 
@@ -79,12 +79,22 @@ and 10 visible tags, drawn on stderr because stdout is the product. `App.PickTag
 labelsync: a test that supplies a picker also declares the run interactive, since a terminal cannot be faked
 portably.
 
+## The base
+
+`App.previousTag` in `internal/cmd/release.go` decides what the notes are generated against, for every command
+that generates them: `--previous-tag` as given, or `""` to let GitHub choose. With `--since-final` it lists the
+repository's tags through the `TagSource` and takes `semver.PreviousFinal(tags, tag)`: the newest semantic
+version without pre-release identifiers whose precedence is below the tag's, skipping every tag that is not a
+semantic version. Without one — the first release, or a non-semver tag — GitHub chooses after all and an info
+line on stderr says so; a failure to list the tags fails the run. Cobra rejects `--previous-tag` together with
+`--since-final` (`MarkFlagsMutuallyExclusive`) before any command runs.
+
 ## Commands
 
 Every rendering command starts with the same step, `App.loadRelease` in `internal/cmd/release.go`: create the
-`NotesSource`, generate the notes, `changes.Parse` the body, and assemble a `changes.Release` with the resolved
-repository and the previous tag. Unclassified items are warned about there, once, on stderr. A command then only
-turns the `Release` into its product on stdout:
+`NotesSource`, generate the notes against `App.previousTag`, `changes.Parse` the body, and assemble a
+`changes.Release` with the resolved repository and the previous tag. Unclassified items are warned about there,
+once, on stderr. A command then only turns the `Release` into its product on stdout:
 
 | Command  | File        | Product                                                                              |
 |----------|-------------|--------------------------------------------------------------------------------------|

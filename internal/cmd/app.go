@@ -100,6 +100,10 @@ type App struct {
 	// GitHub choose it.
 	PreviousTag string
 
+	// SinceFinal is --since-final: compare with the newest final release older
+	// than the tag instead. It excludes --previous-tag.
+	SinceFinal bool
+
 	// Debug is --debug: raises the slog level to Debug on stderr.
 	Debug bool
 

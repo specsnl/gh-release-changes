@@ -17,6 +17,7 @@ import (
 const (
 	flagRepo        = "repo"
 	flagPreviousTag = "previous-tag"
+	flagSinceFinal  = "since-final"
 	flagDebug       = "debug"
 )
 
@@ -61,7 +62,9 @@ for the release ticket, and an issue dump to write release notes from.`,
 	flags := cmd.PersistentFlags()
 	flags.StringP(flagRepo, "R", "", "Select another repository using the [HOST/]OWNER/REPO format")
 	flags.String(flagPreviousTag, "", "Compare with this tag instead of the one GitHub picks")
+	flags.Bool(flagSinceFinal, false, "Compare with the newest final release older than the tag, covering the whole release cycle")
 	flags.Bool(flagDebug, false, "Write debug diagnostics to stderr")
+	cmd.MarkFlagsMutuallyExclusive(flagPreviousTag, flagSinceFinal)
 
 	cmd.AddCommand(newItemsCmd(app))
 	cmd.AddCommand(newSortCmd(app))
@@ -89,6 +92,7 @@ func (a *App) resolveFlags(cmd *cobra.Command) error {
 	// a flag of that type.
 	a.Repo, _ = flags.GetString(flagRepo)
 	a.PreviousTag, _ = flags.GetString(flagPreviousTag)
+	a.SinceFinal, _ = flags.GetBool(flagSinceFinal)
 	a.Debug, _ = flags.GetBool(flagDebug)
 
 	a.Stdout = cmd.OutOrStdout()
@@ -103,7 +107,7 @@ func (a *App) resolveFlags(cmd *cobra.Command) error {
 		return fmt.Errorf("%w: -R %q", releasechanges.ErrInvalidRepoRef, a.Repo)
 	}
 
-	slog.Debug("flags resolved", "repo", a.Repo, "previous_tag", a.PreviousTag)
+	slog.Debug("flags resolved", "repo", a.Repo, "previous_tag", a.PreviousTag, "since_final", a.SinceFinal)
 
 	return nil
 }

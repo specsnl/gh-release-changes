@@ -112,7 +112,14 @@ All four come from one source.
   release flow (verified on `minvws/nl-rdo-woo-web-private`): a final is compared with the previous final, so it
   covers the whole RC cycle (`v3.8.0` → `v3.7.1`); a first RC with the previous final (`v3.8.0-rc.1` →
   `v3.7.1`); a later RC with the previous RC (`v3.8.0-rc.3` → `v3.8.0-rc.2`); a patch with the release before it
-  (`v3.7.1` → `v3.7.0`). The CLI adds no logic of its own; `--previous-tag` overrides the base.
+  (`v3.7.1` → `v3.7.0`). The CLI adds no logic of its own by default; `--previous-tag` overrides the base.
+- **`--since-final`:** a release ticket covers the whole release but is created at `rc.1` and updated as RCs
+  follow, and for `rc.2` GitHub's base is `rc.1`. The persistent `--since-final` takes the newest final
+  (non-pre-release) semver tag older than the target instead (`semver.PreviousFinal`): `v3.9.0-rc.2` → `v3.8.0`,
+  the base GitHub picks for `v3.9.0-rc.1` and `v3.9.0`. It is a flag of its own rather than
+  `--previous-tag final`, which would shadow a tag named `final`, and excludes `--previous-tag`. Without an older
+  final tag GitHub chooses, with an info line on stderr. `ticket` uses it by default; `sort`, `issues` and
+  `items` keep GitHub's choice unless it is passed.
 - **The tag must exist:** `generate-notes` does not fail on an unknown `tag_name` — it silently compares the
   default branch instead (`v9.9.9-doesnotexist` returned a full body) — so the CLI checks the tag (and
   `--previous-tag`, when given) first and fails with `ErrTagNotFound`. The previous tag GitHub chose is read from
@@ -139,6 +146,7 @@ All four come from one source.
 ```text
 gh release-changes [-R owner/repo]              default: the repository of the current directory
                    [--previous-tag <tag>]       default: GitHub's choice
+                   [--since-final]              compare with the previous final release
                    [--debug]                    slog diagnostics on stderr
 │
 ├── items [<tag>]                               JSON contract, see below
@@ -347,7 +355,7 @@ through `output.Writer` (`Info`, `Warn`, `Error`, `WriteErr`) on stderr. `log/sl
 channel on stderr**, silent unless `--debug`, and never used for reporting.
 
 `cmd.App` holds both streams, the slog level, and the resolved persistent flags (`-R`, `--previous-tag`,
-`--debug`). Every command is built with it, and the root's `PersistentPreRunE` rebuilds the streams over
+`--since-final`, `--debug`). Every command is built with it, and the root's `PersistentPreRunE` rebuilds the streams over
 `cmd.OutOrStdout()` / `cmd.ErrOrStderr()`, so a test drives the whole tree with buffers. `-R` is checked for
 `[HOST/]OWNER/REPO` shape there (`ErrInvalidRepoRef`); whether the repository exists is GitHub's answer.
 

@@ -6,6 +6,7 @@ weight: 2
 ```text
 gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the current directory
                    [--previous-tag <tag>]      default: GitHub's choice
+                   [--since-final]             compare with the previous final release
                    [--debug]                   slog diagnostics on stderr
 │
 ├── items [<tag>]                              JSON contract
@@ -28,6 +29,7 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 |------------------------|--------------------------------|-------------------------------------------------------------|
 | `-R`, `--repo`         | the current directory's remote | The source repository, as `OWNER/REPO` or `HOST/OWNER/REPO` |
 | `--previous-tag <tag>` | GitHub's choice                | Compare with this tag instead                               |
+| `--since-final`        | off                            | Compare with the newest final release older than the tag    |
 | `--debug`              | off                            | Write `slog` debug diagnostics to stderr                    |
 
 A malformed `-R` fails before anything is fetched, with exit code `1` and an error along the lines of:
@@ -35,6 +37,8 @@ A malformed `-R` fails before anything is fetched, with exit code `1` and an err
 ```text
 error: invalid repository reference: want [HOST/]OWNER/REPO: -R "acme"
 ```
+
+`--previous-tag` and `--since-final` exclude each other; passing both fails with exit code `1`.
 
 ## The tag
 
@@ -76,6 +80,25 @@ A final is compared with the previous final, so it covers the whole release-cand
 overrides the base. Both tags must exist: `generate-notes` silently compares the default branch for an unknown
 tag, so the tool checks them first and fails with `tag_not_found`.
 
+### The whole release cycle: `--since-final`
+
+A later release candidate is compared with the one before it, so its list holds only what changed since. A
+release ticket covers the whole release, though: it is created at `rc.1` and updated as candidates follow, and
+should not shrink to the delta. `--since-final` compares with the newest final release — a semantic version
+without a pre-release — older than the tag:
+
+| Target        | GitHub's choice | `--since-final` |
+|---------------|-----------------|-----------------|
+| `v3.8.0-rc.1` | `v3.7.1`        | `v3.7.1`        |
+| `v3.8.0-rc.3` | `v3.8.0-rc.2`   | `v3.7.1`        |
+| `v3.8.0`      | `v3.7.1`        | `v3.7.1`        |
+| `v3.7.1`      | `v3.7.0`        | `v3.7.0`        |
+
+So every candidate of a release lists the same range its final will. The tags are read from the repository and
+ordered by semantic version; tags that are not a semantic version are ignored. When there is no older final
+release — the first release, or a tag that is no semantic version — the base is GitHub's choice after all, and
+an `info:` line on stderr says so. `--since-final` excludes `--previous-tag`, and works for every command.
+
 ## Access
 
 Authentication is `gh`'s own: `gh auth login`, `GH_TOKEN`, and `GH_HOST` or `-R HOST/OWNER/REPO` for GitHub
@@ -90,7 +113,7 @@ Prints `gh-release-changes version <version>` to stdout.
 ## `items`
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] items [<tag>]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] items [<tag>]
 ```
 
 Prints the changes of the release as one JSON object on stdout: the contract skills and automation build on.
@@ -102,7 +125,7 @@ group and are named in a warning on stderr. They do not change the exit code.
 ## `sort`
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] sort [<tag>]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] sort [<tag>]
 ```
 
 Prints the grouped "What's Changed" list as Markdown on stdout, for developers and ops:
@@ -133,7 +156,7 @@ description, or compared by a script, as is.
 ## `issues`
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] issues [<tag>]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] issues [<tag>]
                    [--scope-issue-repo OWNER/REPO] [--relative-to OWNER/REPO] [--full-refs] [--unlinked]
                    [--tasks] [--titles]
 ```
@@ -228,7 +251,7 @@ state where the list is pasted. Two flags change the line for other places, and 
 ## `notes` (hidden)
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] notes [<tag>]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] notes [<tag>]
 ```
 
 A debugging aid, left out of `--help`: prints the body `generate-notes` returned for the tag, unparsed, to
@@ -238,7 +261,8 @@ contract and may change or go away.
 ## `dump`
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] dump [<tag>] [--scope-issue-repo OWNER/REPO]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] dump [<tag>]
+                   [--scope-issue-repo OWNER/REPO]
 ```
 
 Prints everything needed to write release notes or a changelog for the release as one Markdown document on
