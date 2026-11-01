@@ -86,18 +86,20 @@ Every rendering command starts with the same step, `App.loadRelease` in `interna
 repository and the previous tag. Unclassified items are warned about there, once, on stderr. A command then only
 turns the `Release` into its product on stdout:
 
-| Command  | File        | Product                                                                                            |
-|----------|-------------|----------------------------------------------------------------------------------------------------|
-| `items`  | `items.go`  | `changes.Release` marshalled as indented JSON                                                      |
-| `sort`   | `sort.go`   | `render.Sort`: the grouped "What's Changed" Markdown                                               |
-| `issues` | `issues.go` | `render.Issues`, with the reference form from `--scope-issue-repo`, `--relative-to`, `--full-refs` |
-| `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched               |
+| Command  | File        | Product                                                                                                              |
+|----------|-------------|----------------------------------------------------------------------------------------------------------------------|
+| `items`  | `items.go`  | `changes.Release` marshalled as indented JSON                                                                        |
+| `sort`   | `sort.go`   | `render.Sort`: the grouped "What's Changed" Markdown                                                                 |
+| `issues` | `issues.go` | `render.Issues`, with the reference form from `--scope-issue-repo`, `--relative-to`, `--full-refs`, and `--unlinked` |
+| `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched                                 |
 
 `dump` makes a second request after the notes: it asks the `DetailsSource` for every issue the items reference
-(`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). An issue's linked
-pull requests are only known once it is read, so the release's pull requests an issue does not link
-(`changes.UnlinkedPullRequests`) are asked for in a third request, made only when there are any, and merged in
-(`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after
+(`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). `Untracked`
+is defined on `changes.Issueless` — no issue, no dependency update — which is what `issues --unlinked` lists,
+so the two commands cannot drift apart on what "without an issue" means; `dump` narrows it to features and
+fixes. An issue's linked pull requests are only known once it is read, so the release's pull requests an issue
+does not link (`changes.UnlinkedPullRequests`) are asked for in a third request, made only when there are any,
+and merged in (`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after
 the product is written; the command then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`.
 A failure of either details request as a whole fails the run before anything is printed.
 

@@ -24,6 +24,27 @@ func TestReferencedIssues(t *testing.T) {
 	}
 }
 
+func TestIssueless(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		item changes.Item
+		want bool
+	}{
+		{"feature without an issue", changes.Item{Group: changes.GroupFeatures}, true},
+		{"fix with an issue", changes.Item{Group: changes.GroupFixes, Issues: []int{4}}, false},
+		{"docs without an issue", changes.Item{Type: "docs", Group: changes.GroupOther, Issues: []int{}}, true},
+		{"chore without an issue", changes.Item{Type: "chore", Group: changes.GroupMaintenance}, true},
+		{"unclassified", changes.Item{Group: changes.GroupUnclassified}, true},
+		{"dependency update", changes.Item{Type: "chore", Group: changes.GroupDependencies}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := changes.Issueless(tc.item); got != tc.want {
+				t.Errorf("Issueless = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestUntracked(t *testing.T) {
 	for _, tc := range []struct {
 		name string

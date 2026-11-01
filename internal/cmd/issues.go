@@ -15,7 +15,7 @@ import (
 func newIssuesCmd(app *App) *cobra.Command {
 	var (
 		scopeIssueRepo, relativeTo string
-		fullRefs                   bool
+		fullRefs, unlinked         bool
 	)
 
 	cmd := &cobra.Command{
@@ -43,7 +43,12 @@ func newIssuesCmd(app *App) *cobra.Command {
 				return err
 			}
 
-			refs := render.IssueRefs{IssueRepo: release.Repo, RelativeTo: release.Repo, Full: fullRefs}
+			refs := render.IssueRefs{
+				IssueRepo:  release.Repo,
+				SourceRepo: release.Repo,
+				RelativeTo: release.Repo,
+				Full:       fullRefs,
+			}
 			if scopeIssueRepo != "" {
 				refs.IssueRepo = scopeIssueRepo
 			}
@@ -52,7 +57,7 @@ func newIssuesCmd(app *App) *cobra.Command {
 				refs.RelativeTo = relativeTo
 			}
 
-			_, err = io.WriteString(app.Stdout, render.Issues(release.Items, refs))
+			_, err = io.WriteString(app.Stdout, render.Issues(release.Items, refs, unlinked))
 
 			return err
 		},
@@ -64,6 +69,7 @@ func newIssuesCmd(app *App) *cobra.Command {
 	flags.StringVar(&relativeTo, flagRelativeTo, "",
 		"Write references relative to this OWNER/REPO: #N for its own issues (default: the source repository)")
 	flags.BoolVar(&fullRefs, "full-refs", false, "Write every reference as OWNER/REPO#N")
+	flags.BoolVar(&unlinked, "unlinked", false, "Also list the pull requests without an issue, dependency updates aside")
 	addRenamedFlags(cmd)
 
 	return cmd

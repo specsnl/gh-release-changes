@@ -1,0 +1,14 @@
+## Issues
+
+No issues.
+
+### Pull requests without an issue
+
+* #179 fix: resolve a record ID from another schema version
+* #180 test: restore the schema version a test found, through a fixture
+* #181 fix: address the critical TODOs outside the generator
+* #184 fix: resolve record types from the type each record declares
+* #188 fix: report what a record lookup cannot resolve
+* #190 test: read the record library from a small library kept with the tests
+* #191 fix: release the type registry when a schema version is selected
+* #192 fix: keep the previous repository copy when a download fails part way

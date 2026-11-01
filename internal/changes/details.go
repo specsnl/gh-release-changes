@@ -105,11 +105,18 @@ func ReferencedIssues(items []Item) []int {
 	return slices.Compact(issues)
 }
 
+// Issueless reports whether item references no issue and is no dependency
+// update: the pull requests issues --unlinked lists, so nothing but a
+// dependency bump stays invisible in a release ticket.
+func Issueless(item Item) bool {
+	return item.Group != GroupDependencies && len(item.Issues) == 0
+}
+
 // Untracked reports whether item is a feature or a fix that references no
-// issue. dump describes such a pull request itself, since there is no issue
-// to describe it; a dependency update is neither, whatever its type.
+// issue: the [Issueless] items dump describes itself, since there is no issue
+// to describe them.
 func Untracked(item Item) bool {
-	return (item.Group == GroupFeatures || item.Group == GroupFixes) && len(item.Issues) == 0
+	return (item.Group == GroupFeatures || item.Group == GroupFixes) && Issueless(item)
 }
 
 // UnlinkedPullRequests returns the release's pull requests that reference one

@@ -14,6 +14,7 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 │     [--scope-issue-repo owner/repo]          default: the source repo
 │     [--relative-to owner/repo]               default: the source repo
 │     [--full-refs]
+│     [--unlinked]                             also the pull requests without an issue
 ├── dump [<tag>]                               issue details to write release notes from
 │     [--scope-issue-repo owner/repo]
 └── version
@@ -131,7 +132,7 @@ description, or compared by a script, as is.
 
 ```shell
 gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] issues [<tag>]
-                   [--scope-issue-repo OWNER/REPO] [--relative-to OWNER/REPO] [--full-refs]
+                   [--scope-issue-repo OWNER/REPO] [--relative-to OWNER/REPO] [--full-refs] [--unlinked]
 ```
 
 Prints a plain issue list per group as Markdown on stdout, for the release ticket (PO, QA, acceptance):
@@ -158,6 +159,7 @@ listed ascending and deduplicated; groups without issues are left out, and a rel
 | `--scope-issue-repo OWNER/REPO` | the source repository | The repository the digit scopes of the titles point at                             |
 | `--relative-to OWNER/REPO`      | the source repository | The repository references are written relative to: the one the list is pasted into |
 | `--full-refs`                   | off                   | Write every reference as `OWNER/REPO#N`                                            |
+| `--unlinked`                    | off                   | Also list the pull requests without an issue                                       |
 
 A reference is short (`#N`) when the `--scope-issue-repo` repository equals the `--relative-to` repository,
 compared without regard to case, and full (`OWNER/REPO#N`) otherwise, so it links to the right issue wherever
@@ -173,6 +175,30 @@ error: invalid repository reference: want [HOST/]OWNER/REPO: --scope-issue-repo 
 to v0.2. The old names are hidden from the help but still work, with a warning on stderr; they will be removed
 in a later release ([#44](https://github.com/specsnl/gh-release-changes/issues/44)). Giving a flag under both
 names is an error.
+
+### Pull requests without an issue
+
+`--unlinked` adds a section after the issues, so nothing in the release stays invisible in the ticket:
+
+```markdown
+### Pull requests without an issue
+
+* #1439 ci: update github actions and enable npm provenance
+* #1543 feat: add a project metadata file
+* #1565 Release v19.0.0
+```
+
+- It lists every pull request without a digit scope, by PR number, with its title as GitHub has it —
+  features and fixes, but also Other, Maintenance and Unclassified changes.
+- Dependency updates are left out: Dependabot bumps are noise in a ticket. There is no flag to bring them back;
+  `sort` lists them.
+- A pull request is in the source repository, so its reference is short when the `--relative-to` repository is
+  the source repository and full otherwise — also when `--scope-issue-repo` points the issues elsewhere.
+  `--full-refs` makes it full too.
+- The section is left out when there is nothing to list, and without `--unlinked` the output is unchanged.
+- Back-merges of a release branch (`chore: release/v3.8.0 >> main`) are Maintenance, so they are listed. Keep
+  them out of the generated notes altogether with an `exclude` in the repository's `.github/release.yml`, which
+  takes them out of every command's output, rather than out of this list alone.
 
 ## `notes` (hidden)
 

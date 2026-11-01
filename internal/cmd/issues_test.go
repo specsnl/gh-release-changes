@@ -25,6 +25,8 @@ func TestIssues_PrintsTheRenderedList(t *testing.T) {
 		{"same repo given explicitly", []string{"--scope-issue-repo", source, "--relative-to", source}, "final-short"},
 		{"relative to another repo", []string{"--relative-to", "example-org/releases"}, "final-full"},
 		{"--full-refs", []string{"--full-refs"}, "final-full-refs"},
+		{"--unlinked", []string{"--unlinked"}, "final-unlinked"},
+		{"--unlinked, relative to another repo", []string{"--unlinked", "--relative-to", "example-org/releases"}, "final-unlinked-full"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			args := append([]string{"-R", source, "issues", "v2.0.0"}, tc.flags...)
@@ -57,6 +59,24 @@ func TestIssues_ScopeIssueRepo(t *testing.T) {
 	}
 
 	if want := "## Issues\n\n### Bug fixes\n\n* o/tracker#12\n"; stdout != want {
+		t.Errorf("stdout = %q, want %q", stdout, want)
+	}
+}
+
+// A pull request stays in the source repository when --scope-issue-repo points the
+// issue references elsewhere.
+func TestIssues_UnlinkedWithScopeIssueRepo(t *testing.T) {
+	fake := &fakeNotes{notes: github.Notes{Body: "* fix(12): x by @alice in https://github.com/o/app/pull/3\n" +
+		"* fix: y by @alice in https://github.com/o/app/pull/4\n"}}
+
+	_, stdout, _, err := runApp(t, appWith(fake), nil,
+		"-R", "o/app", "issues", "v2", "--scope-issue-repo", "o/tracker", "--unlinked")
+	if err != nil {
+		t.Fatalf("issues: %v", err)
+	}
+
+	want := "## Issues\n\n### Bug fixes\n\n* o/tracker#12\n\n### Pull requests without an issue\n\n* #4 fix: y\n"
+	if stdout != want {
 		t.Errorf("stdout = %q, want %q", stdout, want)
 	}
 }

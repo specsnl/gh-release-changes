@@ -1,0 +1,10 @@
+## Issues
+
+No issues.
+
+### Pull requests without an issue
+
+* #115 Track the docs Hugo module and drop the blanket dependencies label
+* #118 Bump the local goreleaser image to v2.18.1
+* #120 Publish the container images through the org's shared pipeline
+* #121 Stop leaving the volume-init container behind

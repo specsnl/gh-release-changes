@@ -1,0 +1,8 @@
+## What's Changed
+* feat(21): add a dark theme by @alice in https://github.com/example-org/app/pull/31
+* fix(22,23): keep the session after a reload by @bob in https://github.com/example-org/app/pull/32
+* chore(deps): bump vite from 8.2.2 to 8.3.0 by @dependabot[bot] in https://github.com/example-org/app/pull/33
+* chore(deps): pin the playwright version by @alice in https://github.com/example-org/app/pull/34
+
+
+**Full Changelog**: https://github.com/example-org/app/compare/v1.1.0...v1.2.0
