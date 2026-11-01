@@ -1,6 +1,6 @@
 ---
 title: Distribution
-weight: 5
+weight: 6
 ---
 
 goreleaser builds linux, darwin and windows × amd64 and arm64 on every `v*` tag, into two archive sets.

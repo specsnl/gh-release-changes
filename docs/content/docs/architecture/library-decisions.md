@@ -1,6 +1,6 @@
 ---
 title: Library Decisions
-weight: 6
+weight: 7
 ---
 
 Every direct dependency, what it does, and what it was chosen over. Two rules decide most of it:
@@ -12,17 +12,17 @@ Every direct dependency, what it does, and what it was chosen over. Two rules de
 
 ## The direct dependencies
 
-| Package                  | Purpose                                     | Shared with labelsync             |
-|--------------------------|---------------------------------------------|-----------------------------------|
-| `github.com/spf13/cobra` | The command tree                            | yes                               |
-| `golang.org/x/term`      | TTY detection for the non-interactive guard | no — `charmbracelet/x/term` there |
+| Package                   | Purpose                                     | Shared with labelsync             |
+|---------------------------|---------------------------------------------|-----------------------------------|
+| `github.com/spf13/cobra`  | The command tree                            | yes                               |
+| `github.com/cli/go-gh/v2` | Repo resolution, REST/GraphQL clients, auth | yes (auth only there)             |
+| `golang.org/x/term`       | TTY detection for the non-interactive guard | no — `charmbracelet/x/term` there |
 
 Planned, and added by the issue that needs them:
 
-| Package                   | Purpose                                     | Shared with labelsync |
-|---------------------------|---------------------------------------------|-----------------------|
-| `github.com/cli/go-gh/v2` | Repo resolution, REST/GraphQL clients, auth | yes (auth only there) |
-| `charm.land/huh/v2`       | The tag picker (filterable select)          | yes                   |
+| Package             | Purpose                            | Shared with labelsync |
+|---------------------|------------------------------------|-----------------------|
+| `charm.land/huh/v2` | The tag picker (filterable select) | yes                   |
 
 ## Decisions
 

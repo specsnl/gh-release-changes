@@ -103,8 +103,9 @@ All four come from one source.
   `v3.7.1`); a later RC with the previous RC (`v3.8.0-rc.3` → `v3.8.0-rc.2`); a patch with the release before it
   (`v3.7.1` → `v3.7.0`). The CLI adds no logic of its own; `--previous-tag` overrides the base.
 - **The tag must exist:** `generate-notes` does not fail on an unknown `tag_name` — it silently compares the
-  default branch instead (`v9.9.9-doesnotexist` returned a full body) — so the CLI checks the tag first and fails
-  with `ErrTagNotFound`.
+  default branch instead (`v9.9.9-doesnotexist` returned a full body) — so the CLI checks the tag (and
+  `--previous-tag`, when given) first and fails with `ErrTagNotFound`. The previous tag GitHub chose is read from
+  the body's `**Full Changelog**: …/compare/<previous>...<tag>` link.
 - **Unclassified items do not change the exit code.** They are shown in the Unclassified group and reported with
   a warning on stderr; enforcing the title format is the PR-title check's job, not the release tool's.
 - **Tag picker:** without a tag argument on an interactive terminal, the CLI offers the tags in semver order
@@ -238,6 +239,7 @@ gh-release-changes/
     │   ├── sort.go
     │   ├── issues.go
     │   ├── dump.go
+    │   ├── notes.go              # hidden: the raw generated body, for debugging
     │   └── version.go
     ├── github/                   # the only package that talks to GitHub, through go-gh
     │   ├── client.go             # REST + GraphQL clients from go-gh, error mapping to sentinels

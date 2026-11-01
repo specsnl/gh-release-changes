@@ -15,12 +15,21 @@
 package cmd
 
 import (
+	"context"
 	"io"
 	"log/slog"
 	"os"
 
+	"github.com/specsnl/gh-release-changes/internal/github"
 	"github.com/specsnl/gh-release-changes/internal/util/output"
 )
+
+// NotesSource fetches GitHub's generated release notes for a tag.
+// *github.Client is the implementation; a test substitutes a fake so a command
+// runs without HTTP.
+type NotesSource interface {
+	GenerateNotes(ctx context.Context, tag, previousTag string) (github.Notes, error)
+}
 
 // App holds everything a command needs that is not its own flags: the output
 // streams, the handle on the debug log level, and the resolved values of the
@@ -52,6 +61,10 @@ type App struct {
 
 	// Debug is --debug: raises the slog level to Debug on stderr.
 	Debug bool
+
+	// NewNotesSource creates the NotesSource for a repository reference in the
+	// form of Repo. Commands call it once flags are resolved; a test replaces it.
+	NewNotesSource func(repo string) (NotesSource, error)
 }
 
 // NewApp creates an App over the process streams with a silent logger.
@@ -66,5 +79,8 @@ func NewApp() *App {
 		Stdout:   os.Stdout,
 		Out:      output.NewDefaultWriter(),
 		LogLevel: output.SetupDefaultLogger(false),
+		NewNotesSource: func(repo string) (NotesSource, error) {
+			return github.New(repo)
+		},
 	}
 }
