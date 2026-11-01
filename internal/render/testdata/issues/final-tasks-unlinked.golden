@@ -1,0 +1,40 @@
+## Issues
+
+### Bug fixes
+
+- [ ] #1510
+- [ ] #1514
+
+### Other
+
+- [ ] #437
+
+### Pull requests without an issue
+
+- [ ] #1439 ci: update github actions and enable npm provenance
+- [ ] #1440 ci: add NODE_AUTH_TOKEN and mark internal packages as private
+- [ ] #1459 fix: Removed unnecessary whitespace within sidemenu. (Theme: classic)
+- [ ] #1467 fix: improved accessibility on table headers with a select all checkbox
+- [ ] #1468 fix: improved a11y on expando row
+- [ ] #1469 fix: Improved a11y on language selector
+- [ ] #1487 fix: update and audit dependencies
+- [ ] #1496 fix: Enhances relation between button and expanded details row for expando rows
+- [ ] #1497 fix: set overrides to fix audit
+- [ ] #1498 ci: fixes Sonarqube 0.0% Coverage on New Code 
+- [ ] #1503 chore: update visual regression source images
+- [ ] #1504 fix: Improve accessibility of table checkboxes by linking labels and checkboxes and updated cursor type of label
+- [ ] #1505 fix: Improved language selector accessibility and added tests
+- [ ] #1512 fix: Replaced non-working backticks with <code> and fixes copy button copying an empty string
+- [ ] #1519 chore(pnpm): updates to support trusted publishing
+- [ ] #1520 chore: change codeowners of repo
+- [ ] #1537 fix(e2e): unblock the e2e docs build on pnpm 11
+- [ ] #1538 fix(sidemenu): guard nav gap against null
+- [ ] #1543 feat: add a project metadata file
+- [ ] #1545 fix(core): skip type checking of dependency declaration files
+- [ ] #1546 chore: add a browser support policy
+- [ ] #1547 docs: add changelog based on Keep a Changelog
+- [ ] #1548 fix: form control fonts, fieldset spacing and skip link overlay
+- [ ] #1561 docs: update changelog for unreleased changes
+- [ ] #1563 fix: removes duplicated
+- [ ] #1564 chore: ignore braces audit advisory until a patched version exists
+- [ ] #1565 Release v19.0.0

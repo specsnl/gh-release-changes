@@ -12,7 +12,7 @@ hosts are resolved the way `gh` resolves them, and the tool never sees a token.
 | `client.go` | `Client`: repository resolution, the go-gh REST and GraphQL clients, error mapping   |
 | `notes.go`  | `GenerateNotes`: the tag check, `generate-notes`, the previous tag from the response |
 | `tags.go`   | `Tags`: every tag of the repository, for the tag picker, through GraphQL             |
-| `issues.go` | `Details`: issues and pull requests for `dump`, through GraphQL                      |
+| `issues.go` | `Details`: issues and pull requests for `dump`; `IssueTitles` for `issues --titles`  |
 
 ## The repository
 
@@ -77,6 +77,12 @@ below), or a GraphQL error without a path.
 The result is a `changes.Details` of plain structs, so `internal/render` renders it without importing this
 package.
 
+`IssueTitles(ctx, issueRepo, issues)` is the same query with a titles-only selection, for `issues --titles`:
+each alias spreads `...issueTitle` (`number title`) instead of `...issue`, so a batch of 25 brings no bodies,
+labels, comments or pull requests, and the `pullRequest` fragment is left out with them. Batching, unreadable
+numbers and errors work as for `Details`; the result is a `changes.IssueTitles` — the titles by number, and an
+`Unreadable` map with GitHub's message.
+
 ## Error mapping
 
 | Response                                  | Error                                      |
@@ -94,8 +100,9 @@ Sentinels are wrapped with `%w` and the tag or repository they are about; the ra
 
 Commands do not use `*github.Client` directly. `cmd.App` holds a `NewNotesSource` factory returning the
 `NotesSource` interface — `GenerateNotes`, and `Repo` for the resolved `OWNER/REPO` — and a `NewDetailsSource`
-factory returning the `DetailsSource` interface (`Details`), and a `NewTagSource` factory returning the
-`TagSource` interface (`Tags`), so a command test swaps in fakes and runs without HTTP. The client itself is
+factory returning the `DetailsSource` interface (`Details`), a `NewTitleSource` factory returning the
+`TitleSource` interface (`IssueTitles`), and a `NewTagSource` factory returning the `TagSource` interface
+(`Tags`), so a command test swaps in fakes and runs without HTTP. The client itself is
 tested against a `net/http/httptest` server: `NewWithOptions` takes go-gh `ClientOptions`, and a test passes a
 token and a `Transport` that redirects every request to the server. The GraphQL fakes answer from the query the
 way GitHub does — the details fake from its aliases, failing a test on an unused variable or fragment, and the

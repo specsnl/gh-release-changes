@@ -15,6 +15,8 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 │     [--relative-to owner/repo]               default: the source repo
 │     [--full-refs]
 │     [--unlinked]                             also the pull requests without an issue
+│     [--tasks]                                - [ ] #N instead of * #N
+│     [--titles]                               * #N <title>, titles read from GitHub
 ├── dump [<tag>]                               issue details to write release notes from
 │     [--scope-issue-repo owner/repo]
 └── version
@@ -133,6 +135,7 @@ description, or compared by a script, as is.
 ```shell
 gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] issues [<tag>]
                    [--scope-issue-repo OWNER/REPO] [--relative-to OWNER/REPO] [--full-refs] [--unlinked]
+                   [--tasks] [--titles]
 ```
 
 Prints a plain issue list per group as Markdown on stdout, for the release ticket (PO, QA, acceptance):
@@ -160,6 +163,8 @@ listed ascending and deduplicated; groups without issues are left out, and a rel
 | `--relative-to OWNER/REPO`      | the source repository | The repository references are written relative to: the one the list is pasted into |
 | `--full-refs`                   | off                   | Write every reference as `OWNER/REPO#N`                                            |
 | `--unlinked`                    | off                   | Also list the pull requests without an issue                                       |
+| `--tasks`                       | off                   | Write every line as a task: `- [ ] #N`                                             |
+| `--titles`                      | off                   | Follow every issue reference with its title                                        |
 
 A reference is short (`#N`) when the `--scope-issue-repo` repository equals the `--relative-to` repository,
 compared without regard to case, and full (`OWNER/REPO#N`) otherwise, so it links to the right issue wherever
@@ -175,6 +180,26 @@ error: invalid repository reference: want [HOST/]OWNER/REPO: --scope-issue-repo 
 to v0.2. The old names are hidden from the help but still work, with a warning on stderr; they will be removed
 in a later release ([#44](https://github.com/specsnl/gh-release-changes/issues/44)). Giving a flag under both
 names is an error.
+
+### Line formats
+
+By default a line is a bullet with the bare reference, `* #12`: GitHub expands it with the issue's title and
+state where the list is pasted. Two flags change the line for other places, and combine:
+
+| Flags              | Line                | For                                                |
+|--------------------|---------------------|----------------------------------------------------|
+| —                  | `* #12`             | GitHub                                             |
+| `--tasks`          | `- [ ] #12`         | A GitHub release ticket QA ticks issues off in     |
+| `--titles`         | `* #12 <title>`     | Places that do not expand references: Zammad, mail |
+| `--tasks --titles` | `- [ ] #12 <title>` | Both                                               |
+
+- `--tasks` needs no extra request: GitHub renders a task-list reference with the issue's title and state too.
+  With `--unlinked` the pull request lines become tasks as well.
+- `--titles` reads the titles from the `--scope-issue-repo` repository, one GraphQL request per 25 issues, and
+  only when an issue is referenced. The pull request lines of `--unlinked` already carry their title.
+- An issue whose title cannot be read keeps its bare reference, is named in a warning on stderr, and the run
+  exits `4`; the list is still printed.
+- Grouping and ordering do not change.
 
 ### Pull requests without an issue
 

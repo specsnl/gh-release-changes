@@ -45,12 +45,24 @@ func (r IssueRefs) ref(repo string, n int) string {
 	return fmt.Sprintf("%s#%d", repo, n)
 }
 
+// IssueList chooses what [Issues] adds to the plain list.
+type IssueList struct {
+	// Unlinked adds the [changes.Issueless] pull requests in a section of their
+	// own, by PR number; it is left out when there are none.
+	Unlinked bool
+
+	// Tasks writes every line as a task (- [ ]) instead of a bullet (*).
+	Tasks bool
+
+	// Titles, when not nil, follows each issue reference with the issue's title.
+	// An issue missing from it keeps its bare reference.
+	Titles map[int]string
+}
+
 // Issues renders the plain issue list for the release ticket: a heading per
 // group that references issues, in display order, and its issues ascending and
-// deduplicated, one reference per line. With unlinked, the [changes.Issueless]
-// pull requests follow in a section of their own, by PR number; it is left out
-// when there are none.
-func Issues(items []changes.Item, refs IssueRefs, unlinked bool) string {
+// deduplicated, one reference per line.
+func Issues(items []changes.Item, refs IssueRefs, list IssueList) string {
 	var b strings.Builder
 
 	b.WriteString("## Issues\n")
@@ -68,7 +80,12 @@ func Issues(items []changes.Item, refs IssueRefs, unlinked bool) string {
 		fmt.Fprintf(&b, "\n### %s\n\n", section.Group.Title())
 
 		for _, n := range issues {
-			fmt.Fprintf(&b, "* %s\n", refs.Ref(n))
+			line := list.marker() + refs.Ref(n)
+			if title, ok := list.Titles[n]; ok {
+				line += " " + title
+			}
+
+			b.WriteString(line + "\n")
 		}
 	}
 
@@ -76,14 +93,22 @@ func Issues(items []changes.Item, refs IssueRefs, unlinked bool) string {
 		b.WriteString("\nNo issues.\n")
 	}
 
-	if unlinked {
-		writeIssueless(&b, items, refs)
+	if list.Unlinked {
+		writeIssueless(&b, items, refs, list.marker())
 	}
 
 	return b.String()
 }
 
-func writeIssueless(b *strings.Builder, items []changes.Item, refs IssueRefs) {
+func (l IssueList) marker() string {
+	if l.Tasks {
+		return "- [ ] "
+	}
+
+	return "* "
+}
+
+func writeIssueless(b *strings.Builder, items []changes.Item, refs IssueRefs, marker string) {
 	var issueless []changes.Item
 
 	for _, item := range items {
@@ -101,6 +126,6 @@ func writeIssueless(b *strings.Builder, items []changes.Item, refs IssueRefs) {
 	b.WriteString("\n### Pull requests without an issue\n\n")
 
 	for _, item := range issueless {
-		fmt.Fprintf(b, "* %s %s\n", refs.PR(item.PR), item.Title)
+		fmt.Fprintf(b, "%s%s %s\n", marker, refs.PR(item.PR), item.Title)
 	}
 }

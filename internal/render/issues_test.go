@@ -1,6 +1,7 @@
 package render_test
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,11 +17,11 @@ func TestIssues_Golden(t *testing.T) {
 
 	for _, name := range fixtures {
 		t.Run(name+"/short", func(t *testing.T) {
-			assertGolden(t, "issues/"+name+"-short.golden", render.Issues(fixtureItems(t, name), short, false))
+			assertGolden(t, "issues/"+name+"-short.golden", render.Issues(fixtureItems(t, name), short, render.IssueList{}))
 		})
 
 		t.Run(name+"/unlinked", func(t *testing.T) {
-			assertGolden(t, "issues/"+name+"-unlinked.golden", render.Issues(fixtureItems(t, name), short, true))
+			assertGolden(t, "issues/"+name+"-unlinked.golden", render.Issues(fixtureItems(t, name), short, render.IssueList{Unlinked: true}))
 		})
 	}
 
@@ -34,7 +35,39 @@ func TestIssues_Golden(t *testing.T) {
 		{"unlinked-full", render.IssueRefs{IssueRepo: source, SourceRepo: source, RelativeTo: "example-org/releases"}, true},
 	} {
 		t.Run("final/"+tc.name, func(t *testing.T) {
-			assertGolden(t, "issues/final-"+tc.name+".golden", render.Issues(fixtureItems(t, "final"), tc.refs, tc.unlinked))
+			assertGolden(t, "issues/final-"+tc.name+".golden", render.Issues(fixtureItems(t, "final"), tc.refs, render.IssueList{Unlinked: tc.unlinked}))
+		})
+	}
+}
+
+// final-titles.json has no title for #1514, as when GitHub could not read it:
+// that issue keeps its bare reference.
+func TestIssues_Golden_Formats(t *testing.T) {
+	raw, err := os.ReadFile(filepath.Join("testdata", "issues", "final-titles.json"))
+	if err != nil {
+		t.Fatalf("reading the titles: %v", err)
+	}
+
+	var titles map[int]string
+	if err := json.Unmarshal(raw, &titles); err != nil {
+		t.Fatalf("decoding the titles: %v", err)
+	}
+
+	short := render.IssueRefs{IssueRepo: source, SourceRepo: source, RelativeTo: source}
+
+	for _, tc := range []struct {
+		name string
+		list render.IssueList
+	}{
+		{"tasks", render.IssueList{Tasks: true}},
+		{"titles", render.IssueList{Titles: titles}},
+		{"tasks-titles", render.IssueList{Tasks: true, Titles: titles}},
+		{"tasks-unlinked", render.IssueList{Tasks: true, Unlinked: true}},
+		{"titles-unlinked", render.IssueList{Titles: titles, Unlinked: true}},
+		{"tasks-titles-unlinked", render.IssueList{Tasks: true, Titles: titles, Unlinked: true}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			assertGolden(t, "issues/final-"+tc.name+".golden", render.Issues(fixtureItems(t, "final"), short, tc.list))
 		})
 	}
 }
@@ -50,10 +83,10 @@ func TestIssues_Golden_AllLinked(t *testing.T) {
 	items := changes.Parse(string(body))
 	refs := render.IssueRefs{IssueRepo: "example-org/app", SourceRepo: "example-org/app", RelativeTo: "example-org/app"}
 
-	got := render.Issues(items, refs, true)
+	got := render.Issues(items, refs, render.IssueList{Unlinked: true})
 	assertGolden(t, "issues/all-linked-unlinked.golden", got)
 
-	if without := render.Issues(items, refs, false); got != without {
+	if without := render.Issues(items, refs, render.IssueList{}); got != without {
 		t.Errorf("--unlinked changed the output:\n%s\nwithout:\n%s", got, without)
 	}
 }
@@ -134,7 +167,7 @@ func TestIssues(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := render.Issues(tc.items, refs, false); got != tc.want {
+			if got := render.Issues(tc.items, refs, render.IssueList{}); got != tc.want {
 				t.Errorf("got\n%s\nwant\n%s", got, tc.want)
 			}
 		})
@@ -185,7 +218,49 @@ func TestIssues_Unlinked(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := render.Issues(tc.items, refs, true); got != tc.want {
+			if got := render.Issues(tc.items, refs, render.IssueList{Unlinked: true}); got != tc.want {
+				t.Errorf("got\n%s\nwant\n%s", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestIssues_Formats(t *testing.T) {
+	refs := render.IssueRefs{IssueRepo: "o/tracker", SourceRepo: "o/app", RelativeTo: "o/app"}
+	items := []changes.Item{
+		{PR: 1, Title: "fix(12,13): a", Group: changes.GroupFixes, Issues: []int{12, 13}},
+		{PR: 2, Title: "chore: b", Group: changes.GroupMaintenance},
+	}
+
+	for _, tc := range []struct {
+		name string
+		list render.IssueList
+		want string
+	}{
+		{
+			name: "tasks",
+			list: render.IssueList{Tasks: true, Unlinked: true},
+			want: "## Issues\n\n### Bug fixes\n\n- [ ] o/tracker#12\n- [ ] o/tracker#13\n\n" +
+				"### Pull requests without an issue\n\n- [ ] #2 chore: b\n",
+		},
+		{
+			name: "titles, one missing",
+			list: render.IssueList{Titles: map[int]string{12: "Exports are slow"}},
+			want: "## Issues\n\n### Bug fixes\n\n* o/tracker#12 Exports are slow\n* o/tracker#13\n",
+		},
+		{
+			name: "no titles read",
+			list: render.IssueList{Titles: map[int]string{}},
+			want: "## Issues\n\n### Bug fixes\n\n* o/tracker#12\n* o/tracker#13\n",
+		},
+		{
+			name: "tasks and titles",
+			list: render.IssueList{Tasks: true, Titles: map[int]string{12: "Exports are slow", 13: "Imports too"}},
+			want: "## Issues\n\n### Bug fixes\n\n- [ ] o/tracker#12 Exports are slow\n- [ ] o/tracker#13 Imports too\n",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := render.Issues(items, refs, tc.list); got != tc.want {
 				t.Errorf("got\n%s\nwant\n%s", got, tc.want)
 			}
 		})

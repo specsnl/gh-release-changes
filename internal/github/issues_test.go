@@ -134,7 +134,7 @@ func (f *fakeGraphQL) checkQuery(query string, variables map[string]any) {
 		}
 	}
 
-	for _, fragment := range []string{"issue", "pullRequest"} {
+	for _, fragment := range []string{"issue", "issueTitle", "pullRequest"} {
 		if strings.Contains(query, "fragment "+fragment+" ") && !strings.Contains(query, "..."+fragment+" ") {
 			f.t.Errorf("fragment %s is defined but not used:\n%s", fragment, query)
 		}
@@ -377,4 +377,99 @@ func TestDetails_Endpoint(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestIssueTitles(t *testing.T) {
+	fake := &fakeGraphQL{t: t, issues: map[int]string{12: issue12}}
+
+	titles, err := newClientFor(t, fake, "example-org/app").IssueTitles(context.Background(), "example-org/tracker", []int{12, 15})
+	if err != nil {
+		t.Fatalf("IssueTitles: %v", err)
+	}
+
+	if len(fake.queries) != 1 {
+		t.Fatalf("%d queries, want one", len(fake.queries))
+	}
+
+	if want := map[int]string{12: "Exports are slow"}; fmt.Sprint(titles.Titles) != fmt.Sprint(want) {
+		t.Errorf("titles = %v, want %v", titles.Titles, want)
+	}
+
+	if got := titles.Unreadable[15]; got != "Could not resolve to an Issue with the number of 15." {
+		t.Errorf("issue 15 reason = %q", got)
+	}
+
+	vars := fake.variables[0]
+	if vars["issueOwner"] != "example-org" || vars["issueName"] != "tracker" {
+		t.Errorf("variables = %v, want issues from example-org/tracker", vars)
+	}
+
+	// Only the title is selected: no bodies, labels, comments or pull requests.
+	query := fake.queries[0]
+	for _, unwanted := range []string{"body", "labels", "comments", "closedByPullRequestsReferences", "pullRequest"} {
+		if strings.Contains(query, unwanted) {
+			t.Errorf("query selects %s:\n%s", unwanted, query)
+		}
+	}
+}
+
+func TestIssueTitles_Batches(t *testing.T) {
+	fake := &fakeGraphQL{t: t, issues: map[int]string{}}
+
+	var issues []int
+
+	for n := 1; n <= 30; n++ {
+		issues = append(issues, n)
+		fake.issues[n] = fmt.Sprintf(`{"number": %d, "title": "t%d"}`, n, n)
+	}
+
+	titles, err := newClientFor(t, fake, "example-org/app").IssueTitles(context.Background(), "example-org/app", issues)
+	if err != nil {
+		t.Fatalf("IssueTitles: %v", err)
+	}
+
+	if len(fake.queries) != 2 {
+		t.Errorf("%d queries, want 2 batches of at most 25", len(fake.queries))
+	}
+
+	if len(titles.Titles) != 30 || titles.Titles[30] != "t30" {
+		t.Errorf("got %d titles (30 = %q), want 30", len(titles.Titles), titles.Titles[30])
+	}
+}
+
+func TestIssueTitles_NothingToFetch(t *testing.T) {
+	fake := &fakeGraphQL{t: t}
+
+	titles, err := newClientFor(t, fake, "example-org/app").IssueTitles(context.Background(), "example-org/app", nil)
+	if err != nil {
+		t.Fatalf("IssueTitles: %v", err)
+	}
+
+	if len(fake.queries) != 0 {
+		t.Errorf("%d queries for nothing", len(fake.queries))
+	}
+
+	if titles.Titles == nil || titles.Unreadable == nil {
+		t.Error("the maps are nil")
+	}
+}
+
+func TestIssueTitles_Failures(t *testing.T) {
+	t.Run("forbidden", func(t *testing.T) {
+		fake := &fakeGraphQL{t: t, status: http.StatusForbidden}
+
+		_, err := newClientFor(t, fake, "example-org/app").IssueTitles(context.Background(), "example-org/app", []int{12})
+		if !errors.Is(err, releasechanges.ErrForbidden) {
+			t.Errorf("error = %v, want ErrForbidden", err)
+		}
+	})
+
+	t.Run("malformed issue repo", func(t *testing.T) {
+		fake := &fakeGraphQL{t: t}
+
+		_, err := newClientFor(t, fake, "example-org/app").IssueTitles(context.Background(), "github.com/o/app", []int{12})
+		if !errors.Is(err, releasechanges.ErrInvalidRepoRef) {
+			t.Errorf("error = %v, want ErrInvalidRepoRef", err)
+		}
+	})
 }

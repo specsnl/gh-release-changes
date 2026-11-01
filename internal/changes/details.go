@@ -58,6 +58,14 @@ type PullRequest struct {
 	URL   string
 }
 
+// IssueTitles are the issue titles issues --titles fetched, keyed by number.
+// A number that could not be read is in Unreadable instead, with GitHub's
+// reason.
+type IssueTitles struct {
+	Titles     map[int]string
+	Unreadable map[int]string
+}
+
 // Details are the issues and pull requests dump fetched for a release, keyed
 // by number. A number that could not be read is in an Unreadable map instead,
 // with the reason, so the dump can say so in place rather than leave it out.

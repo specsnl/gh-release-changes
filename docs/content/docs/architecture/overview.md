@@ -86,12 +86,12 @@ Every rendering command starts with the same step, `App.loadRelease` in `interna
 repository and the previous tag. Unclassified items are warned about there, once, on stderr. A command then only
 turns the `Release` into its product on stdout:
 
-| Command  | File        | Product                                                                                                              |
-|----------|-------------|----------------------------------------------------------------------------------------------------------------------|
-| `items`  | `items.go`  | `changes.Release` marshalled as indented JSON                                                                        |
-| `sort`   | `sort.go`   | `render.Sort`: the grouped "What's Changed" Markdown                                                                 |
-| `issues` | `issues.go` | `render.Issues`, with the reference form from `--scope-issue-repo`, `--relative-to`, `--full-refs`, and `--unlinked` |
-| `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched                                 |
+| Command  | File        | Product                                                                              |
+|----------|-------------|--------------------------------------------------------------------------------------|
+| `items`  | `items.go`  | `changes.Release` marshalled as indented JSON                                        |
+| `sort`   | `sort.go`   | `render.Sort`: the grouped "What's Changed" Markdown                                 |
+| `issues` | `issues.go` | `render.Issues`, with the `render.IssueRefs` and `render.IssueList` its flags choose |
+| `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched |
 
 `dump` makes a second request after the notes: it asks the `DetailsSource` for every issue the items reference
 (`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). `Untracked`
@@ -102,6 +102,12 @@ does not link (`changes.UnlinkedPullRequests`) are asked for in a third request,
 and merged in (`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after
 the product is written; the command then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`.
 A failure of either details request as a whole fails the run before anything is printed.
+
+`issues --titles` makes one more request after the notes, and only when an issue is referenced: it asks the
+`TitleSource` for the titles of `changes.ReferencedIssues` in the `--scope-issue-repo` repository, and hands them
+to `render.Issues` as a plain `map[int]string`. A title that could not be read is left out of the map, so its
+issue keeps its bare reference; it is warned about after the product is written and the run exits `4`, as for
+`dump`.
 
 ### Renamed flags
 

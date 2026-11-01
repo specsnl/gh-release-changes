@@ -104,6 +104,10 @@ All four come from one source.
   `### Pull requests without an issue` section, one `* #<pr> <title>` line per pull request by PR number: every
   group but Dependencies (`changes.Issueless`, which `dump`'s `changes.Untracked` narrows to features and
   fixes). Release back-merges are left to an `exclude` in `.github/release.yml`; `ticket` turns the section on.
+  `--tasks` writes `- [ ] #N` (GitHub still expands it, and QA can tick it off) and `--titles` writes
+  `* #N <title>` for places that do not expand references; they combine. The titles come from a titles-only
+  selection of the details query, 25 issues per request; an unreadable title keeps the bare reference and the
+  run exits `4`.
 - **Range:** any tag (RC, patch or final) as target. The base is GitHub's choice, which already fits the
   release flow (verified on `minvws/nl-rdo-woo-web-private`): a final is compared with the previous final, so it
   covers the whole RC cycle (`v3.8.0` → `v3.7.1`); a first RC with the previous final (`v3.8.0-rc.1` →
@@ -144,6 +148,8 @@ gh release-changes [-R owner/repo]              default: the repository of the c
 │     [--relative-to owner/repo]                default: the source repo
 │     [--full-refs]
 │     [--unlinked]                              also the pull requests without an issue
+│     [--tasks]                                 - [ ] #N instead of * #N
+│     [--titles]                                * #N <title>, titles read from GitHub
 ├── dump [<tag>]                                issue details for the writing skills
 │     [--scope-issue-repo owner/repo]
 ├── ticket [<tag>]                              (later) create/update the release issue
@@ -365,13 +371,13 @@ creates nothing. Users with read-only access cannot use the tool on a repo, and 
 
 Stdlib `testing` only, as in labelsync.
 
-| Package   | Approach                                                                                            |
-|-----------|-----------------------------------------------------------------------------------------------------|
-| `changes` | **The core suite.** Table-driven over every parser rule; golden `items` output over captured bodies |
-| `render`  | Golden files for `sort`, `issues` (short, full, `--full-refs`, `--unlinked`), and `dump`            |
-| `semver`  | Table-driven ordering, pre-releases, non-semver tags                                                |
-| `github`  | `net/http/httptest` fake: tag check, generate-notes, 403/404 mapping to sentinels, pagination       |
-| `cmd`     | End to end against a fake `github` boundary: stdout/stderr split, exit codes, interactive guard     |
+| Package   | Approach                                                                                                        |
+|-----------|-----------------------------------------------------------------------------------------------------------------|
+| `changes` | **The core suite.** Table-driven over every parser rule; golden `items` output over captured bodies             |
+| `render`  | Golden files for `sort`, `issues` (short, full, `--full-refs`, `--unlinked`, `--tasks`, `--titles`), and `dump` |
+| `semver`  | Table-driven ordering, pre-releases, non-semver tags                                                            |
+| `github`  | `net/http/httptest` fake: tag check, generate-notes, 403/404 mapping to sentinels, pagination                   |
+| `cmd`     | End to end against a fake `github` boundary: stdout/stderr split, exit codes, interactive guard                 |
 
 The captured `generate-notes` bodies in `internal/changes/testdata/` cover a final release, an RC, a patch
 release, dependabot PRs, and a repo with a `.github/release.yml`. They are anonymised — repositories, people and

@@ -1,0 +1,10 @@
+## Issues
+
+### Bug fixes
+
+* #1510 Quick start SCSS imports point at the wrong path
+* #1514
+
+### Other
+
+* #437 Document how components behave without JavaScript
