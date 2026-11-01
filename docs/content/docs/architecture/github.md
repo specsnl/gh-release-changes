@@ -54,6 +54,7 @@ Sentinels are wrapped with `%w` and the tag or repository they are about; the ra
 ## The boundary for commands
 
 Commands do not use `*github.Client` directly. `cmd.App` holds a `NewNotesSource` factory returning the
-`NotesSource` interface — `GenerateNotes` alone — so a command test swaps in a fake and runs without HTTP. The
-client itself is tested against a `net/http/httptest` server: `NewWithOptions` takes go-gh `ClientOptions`, and a
-test passes a token and a `Transport` that redirects every request to the server.
+`NotesSource` interface — `GenerateNotes`, and `Repo` for the resolved `OWNER/REPO` — so a command test swaps
+in a fake and runs without HTTP. The client itself is tested against a `net/http/httptest` server:
+`NewWithOptions` takes go-gh `ClientOptions`, and a test passes a token and a `Transport` that redirects every
+request to the server.

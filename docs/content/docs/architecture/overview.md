@@ -28,15 +28,15 @@ gh-release-changes/
         └── output/               # Writer for stderr diagnostics, slog setup, TTY detection
 ```
 
-| Package                   | Status                                                          |
-|---------------------------|-----------------------------------------------------------------|
-| `internal/releasechanges` | Built — see [Error Handling]({{< ref "./error-handling.md" >}}) |
-| `internal/util/exit`      | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})    |
-| `internal/util/output`    | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})    |
-| `internal/cmd`            | `App`, the root and its persistent flags, `version`, `notes`    |
-| `internal/changes`        | Built — see [Parser]({{< ref "./parser.md" >}})                 |
-| `internal/github`         | Notes — see [GitHub Client]({{< ref "./github.md" >}})          |
-| `internal/render`         | Not built yet                                                   |
+| Package                   | Status                                                                |
+|---------------------------|-----------------------------------------------------------------------|
+| `internal/releasechanges` | Built — see [Error Handling]({{< ref "./error-handling.md" >}})       |
+| `internal/util/exit`      | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})          |
+| `internal/util/output`    | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})          |
+| `internal/cmd`            | `App`, the root and its persistent flags, `items`, `version`, `notes` |
+| `internal/changes`        | Built — see [Parser]({{< ref "./parser.md" >}})                       |
+| `internal/github`         | Notes — see [GitHub Client]({{< ref "./github.md" >}})                |
+| `internal/render`         | Not built yet                                                         |
 
 ### Why `changes`, `render` and `semver` are isolated
 
@@ -59,3 +59,18 @@ flowchart LR
 ```
 
 Only `internal/github` talks to GitHub, through go-gh, so authentication and GHES hosts are gh's.
+
+## Commands
+
+Every rendering command starts with the same step, `App.loadRelease` in `internal/cmd/release.go`: create the
+`NotesSource`, generate the notes, `changes.Parse` the body, and assemble a `changes.Release` with the resolved
+repository and the previous tag. Unclassified items are warned about there, once, on stderr. A command then only
+turns the `Release` into its product on stdout:
+
+| Command | File       | Product                                       |
+|---------|------------|-----------------------------------------------|
+| `items` | `items.go` | `changes.Release` marshalled as indented JSON |
+
+Command tests drive the whole tree with a fake `NotesSource` answering with the parser's fixtures, and compare
+stdout with golden files under `internal/cmd/testdata/<command>/`; `go test ./internal/cmd -update` rewrites
+them.

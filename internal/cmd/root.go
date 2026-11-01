@@ -63,6 +63,7 @@ for the release ticket, and an issue dump to write release notes from.`,
 	flags.String(flagPreviousTag, "", "Compare with this tag instead of the one GitHub picks")
 	flags.Bool(flagDebug, false, "Write debug diagnostics to stderr")
 
+	cmd.AddCommand(newItemsCmd(app))
 	cmd.AddCommand(newVersionCmd(app))
 	cmd.AddCommand(newNotesCmd(app))
 

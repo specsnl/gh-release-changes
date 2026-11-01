@@ -56,7 +56,19 @@ token cannot see, fails with `repo_not_found`.
 
 Prints `gh-release-changes version <version>` to stdout.
 
-## `items`, `sort`, `issues`
+## `items`
+
+```shell
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] items <tag>
+```
+
+Prints the changes of the release as one JSON object on stdout: the contract skills and automation build on.
+The fields, the groups and the order are described in [The `items` JSON]({{< ref "./items-json.md" >}}).
+
+Pull requests whose title is outside the `<type>[(<scopes>)][!]: <subject>` format land in the `unclassified`
+group and are named in a warning on stderr. They do not change the exit code.
+
+## `sort`, `issues`
 
 > [!NOTE]
 > Not built yet: these land in v0.1. The output formats are specified in
