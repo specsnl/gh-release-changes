@@ -45,7 +45,8 @@ In display order:
 
 Items are listed in display order: by group as above, then by first issue number and PR number, with items
 without an issue last; dependencies by PR number. `scopes` and `issues` are always arrays, never `null`. An
-unclassified item has an empty `type`, empty `scopes` and `issues`, and `breaking: false`.
+unclassified item has an empty `type`, empty `scopes` and `issues`, and `breaking: false` — unless
+`--link closing` gave it issues, see below.
 
 | Field          | Meaning                                                                                                                                     |
 |----------------|---------------------------------------------------------------------------------------------------------------------------------------------|
@@ -55,5 +56,32 @@ unclassified item has an empty `type`, empty `scopes` and `issues`, and `breakin
 | `items`        | The pull requests, in display order; `[]` when there are none                                                                               |
 
 Unclassified items are listed and reported with a warning on stderr naming their PRs; the run still exits `0`.
+
+## `issue_sources`
+
+`issues` holds the digit scopes of the title. With [`--link closing`]({{< ref "./commands.md#closing-references" >}})
+it also holds the issues the pull request closes on GitHub, and every item gets an `issue_sources` object that
+says where each number came from:
+
+```json
+{
+  "pr": 1467,
+  "title": "fix(1514): improved accessibility on table headers",
+  "issues": [1514, 1600],
+  "issue_sources": {
+    "title": [1514],
+    "closing": [1514, 1600]
+  }
+}
+```
+
+| Field     | Meaning                                                 |
+|-----------|---------------------------------------------------------|
+| `title`   | The digit scopes of the title, in title order           |
+| `closing` | The issues the pull request closes on GitHub, ascending |
+
+Both are always arrays, also when empty, and a number can be in both. `issues` is their union: the title's
+numbers first, then the closing ones that are not among them, ascending. Without `--link` the field is left
+out, so the document is exactly as before. More sources may be added as fields of `issue_sources`.
 
 How a line becomes an item is described in [Parser]({{< ref "../architecture/parser.md" >}}).

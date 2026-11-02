@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"log/slog"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,7 +15,11 @@ import (
 // generated notes for tag, parse them, and warn about unclassified items on
 // stderr. Unclassified items are shown, never dropped, and do not change the
 // exit code; enforcing the title format is the PR-title check's job.
-func (a *App) loadRelease(ctx context.Context, tag string) (changes.Release, error) {
+//
+// With --link closing the items also get the issues their pull requests close
+// in issueRepo (OWNER/REPO, or "" for the source repository): the repository
+// the digit scopes point at, so both sources number the same issues.
+func (a *App) loadRelease(ctx context.Context, tag, issueRepo string) (changes.Release, error) {
 	source, err := a.NewNotesSource(a.Repo)
 	if err != nil {
 		return changes.Release{}, err
@@ -39,7 +44,43 @@ func (a *App) loadRelease(ctx context.Context, tag string) (changes.Release, err
 
 	a.warnUnclassified(release.Items)
 
+	if slices.Contains(a.Link, linkClosing) {
+		if err := a.linkClosing(ctx, release, issueRepo); err != nil {
+			return changes.Release{}, err
+		}
+	}
+
 	return release, nil
+}
+
+// linkClosing adds the issues the release's pull requests close to its items.
+func (a *App) linkClosing(ctx context.Context, release changes.Release, issueRepo string) error {
+	if issueRepo == "" {
+		issueRepo = release.Repo
+	}
+
+	prs := make([]int, len(release.Items))
+	for i, item := range release.Items {
+		prs[i] = item.PR
+	}
+
+	var closing map[int][]int
+
+	if len(prs) > 0 {
+		source, err := a.NewClosingSource(a.Repo)
+		if err != nil {
+			return err
+		}
+
+		closing, err = source.ClosingIssues(ctx, issueRepo, prs)
+		if err != nil {
+			return err
+		}
+	}
+
+	changes.LinkClosing(release.Items, closing)
+
+	return nil
 }
 
 // previousTag is the base to generate the notes against: --previous-tag, the

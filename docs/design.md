@@ -35,7 +35,11 @@ The design was first discussed in `specsnl/agent-skills-public` (`docs/plans/gh-
 - Writing prose. The Dutch release notes and changelog are the plugin's job; the CLI hands it the facts.
 - Editing releases. The release body is never read and never written.
 - Supporting PR-title conventions other than the one the target repos enforce (see
-  [Parser rules](#parser-rules)). No keyword fallback for free-form titles.
+  [Parser rules](#parser-rules)). No keyword fallback for free-form titles; the one source beyond the title is
+  GitHub's own closing references, opt-in (`--link closing`).
+- Reading issue numbers from branch names (`8285-update-changelog`). Measured on three woo releases (#28) it
+  found no issue the titles and closing references did not, gave a doubtful hit, and matched only one of the
+  branch styles in use.
 
 ---
 
@@ -120,6 +124,15 @@ All four come from one source.
   `--previous-tag final`, which would shadow a tag named `final`, and excludes `--previous-tag`. Without an older
   final tag GitHub chooses, with an info line on stderr. `ticket` uses it by default; `sort`, `issues` and
   `items` keep GitHub's choice unless it is passed.
+- **`--link closing`:** a pull request can close more issues than its title scopes, and a `docs:` or `chore:`
+  pull request often scopes none. The persistent `--link closing` adds the issues each pull request closes on
+  GitHub (`closingIssuesReferences`: a closing keyword or a Development-sidebar link) to its `issues`, after the
+  title's, and records both in `issue_sources`. Measured on three woo releases (#28, 152 pull requests) it added
+  10 issues to the 58 of the titles, with no false hits. Only references into the scope issue repo count — a
+  number is only meaningful in one repository — so the commands with `--scope-issue-repo` read them there, the
+  others in the source repo. One aliased GraphQL query per 100 pull requests, 25 references each. Opt-in, so
+  without it every output is unchanged; a branch-name source was measured and not built (see
+  [Non-goals](#non-goals)).
 - **The tag must exist:** `generate-notes` does not fail on an unknown `tag_name` — it silently compares the
   default branch instead (`v9.9.9-doesnotexist` returned a full body) — so the CLI checks the tag (and
   `--previous-tag`, when given) first and fails with `ErrTagNotFound`. The previous tag GitHub chose is read from
@@ -147,6 +160,7 @@ All four come from one source.
 gh release-changes [-R owner/repo]              default: the repository of the current directory
                    [--previous-tag <tag>]       default: GitHub's choice
                    [--since-final]              compare with the previous final release
+                   [--link closing]             also the issues a pull request closes
                    [--debug]                    slog diagnostics on stderr
 │
 ├── items [<tag>]                               JSON contract, see below
@@ -208,6 +222,10 @@ they may be added to, never renamed.
 
 Group identifiers: `features`, `fixes`, `other`, `maintenance`, `dependencies`, `unclassified`.
 
+With `--link closing` every item also has `"issue_sources": {"title": [6768, 6747], "closing": [6747, 7001]}`,
+and `issues` is their union: the title's numbers in title order, then the closing ones not among them,
+ascending. Without `--link` the field is left out.
+
 ### Parser rules
 
 Strict, matching the PR-title action:
@@ -224,7 +242,8 @@ Strict, matching the PR-title action:
 - Dependencies takes precedence over the type: `fix(deps): …` and `chore(deps): …` both land in Dependencies,
   not in Bug fixes or Maintenance. A dependabot PR is a dependency even when its title is outside the format.
 - Issue numbers: digit scopes only (`\d+`; `e2e` and other scopes ignored), comma-separated.
-  No `+`/`&`/`and` separators and no keyword fallback for titles without a type.
+  No `+`/`&`/`and` separators and no keyword fallback for titles without a type. `--link closing` adds the
+  issues a pull request closes after parsing, whatever its title; an unclassified item can get issues that way.
 - Sorting: by first issue number, then PR number (no issue → bottom); Dependencies by PR number.
   Issue list: per group ascending, deduplicated.
 
@@ -300,11 +319,13 @@ gh-release-changes/
     │   ├── client.go             # REST + GraphQL clients from go-gh, error mapping to sentinels
     │   ├── notes.go              # tag existence check, generate-notes
     │   ├── tags.go               # tag listing for the picker
-    │   └── issues.go             # issue / PR details for dump
+    │   ├── issues.go             # issue / PR details for dump
+    │   └── closing.go            # the issues each pull request closes, for --link closing
     ├── changes/                  # pure, no network
     │   ├── item.go               # Item, Group, Release — the items JSON contract
     │   ├── parse.go              # generated-notes body → []Item (the parser rules)
     │   ├── sort.go               # grouping, ordering, issue deduplication
+    │   ├── link.go               # the closing issues merged into the items (--link closing)
     │   └── notes.go              # references in release notes, compared with the release
     ├── render/                   # pure: Release → sort Markdown, issue list, dump Markdown
     ├── semver/                   # pure: tag ordering for the picker
@@ -371,9 +392,9 @@ through `output.Writer` (`Info`, `Warn`, `Error`, `WriteErr`) on stderr. `log/sl
 channel on stderr**, silent unless `--debug`, and never used for reporting.
 
 `cmd.App` holds both streams, the slog level, and the resolved persistent flags (`-R`, `--previous-tag`,
-`--since-final`, `--debug`). Every command is built with it, and the root's `PersistentPreRunE` rebuilds the streams over
-`cmd.OutOrStdout()` / `cmd.ErrOrStderr()`, so a test drives the whole tree with buffers. `-R` is checked for
-`[HOST/]OWNER/REPO` shape there (`ErrInvalidRepoRef`); whether the repository exists is GitHub's answer.
+`--since-final`, `--link`, `--debug`). Every command is built with it, and the root's `PersistentPreRunE` rebuilds the
+streams over `cmd.OutOrStdout()` / `cmd.ErrOrStderr()`, so a test drives the whole tree with buffers. `-R` is checked
+for `[HOST/]OWNER/REPO` shape there (`ErrInvalidRepoRef`); whether the repository exists is GitHub's answer.
 
 `output.IsTTY` answers the non-interactive guard with the isatty ioctl (`golang.org/x/term`), not the file mode:
 `/dev/null` is a character device too.
@@ -400,7 +421,7 @@ Stdlib `testing` only, as in labelsync.
 | `changes` | **The core suite.** Table-driven over every parser rule; golden `items` output over captured bodies             |
 | `render`  | Golden files for `sort`, `issues` (short, full, `--full-refs`, `--unlinked`, `--tasks`, `--titles`), and `dump` |
 | `semver`  | Table-driven ordering, pre-releases, non-semver tags                                                            |
-| `github`  | `net/http/httptest` fake: tag check, generate-notes, 403/404 mapping to sentinels, pagination                   |
+| `github`  | `net/http/httptest` fake: tag check, generate-notes, 403/404 mapping to sentinels, pagination, closing refs     |
 | `cmd`     | End to end against a fake `github` boundary: stdout/stderr split, exit codes, interactive guard                 |
 
 The captured `generate-notes` bodies in `internal/changes/testdata/` cover a final release, an RC, a patch
@@ -475,11 +496,12 @@ Learned along the way:
 
 Tracked as GitHub milestones; GitHub's native "blocked by" links give the order inside them.
 
-| Milestone | Scope                                                                                         |
-|-----------|-----------------------------------------------------------------------------------------------|
-| `v0.1`    | Foundation, fetch, parser, `items`, `sort`, `issues`, the docs site, release `v0.1.0-rc.1`    |
-| `v0.2`    | `dump` and the interactive tag picker                                                         |
-| `v0.3`    | `ticket` and what it builds on: `--since-final`, `issues` formats, notes check, linking spike |
+| Milestone | Scope                                                                                      |
+|-----------|--------------------------------------------------------------------------------------------|
+| `v0.1`    | Foundation, fetch, parser, `items`, `sort`, `issues`, the docs site, release `v0.1.0-rc.1` |
+| `v0.2`    | `dump` and the interactive tag picker                                                      |
+| `v0.3`    | `issues` improvements: `--since-final`, `issues` formats, notes check, `--link closing`    |
+| `v0.4`    | `ticket`, the release-flow page, removing the renamed flags' aliases                       |
 
 The `github-releases` plugin follows `dump`, in `specsnl/agent-skills-public` (specsnl/agent-skills-public#11).
 

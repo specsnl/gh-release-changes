@@ -70,8 +70,9 @@ func (g Group) Title() string {
 // items contract: fields may be added, never renamed.
 //
 // Scopes and Issues are never nil, so they marshal as [] rather than null. For
-// an unclassified item Type is "", Scopes and Issues are empty, and Breaking is
-// false: nothing of a title outside the format is trusted.
+// an unclassified item Type is "", Scopes are empty, and Breaking is false:
+// nothing of a title outside the format is trusted. Its Issues are empty too,
+// unless [LinkClosing] added the issues its pull request closes.
 type Item struct {
 	PR       int      `json:"pr"`
 	Title    string   `json:"title"`
@@ -83,6 +84,23 @@ type Item struct {
 	Bot      bool     `json:"bot"`
 	URL      string   `json:"url"`
 	Group    Group    `json:"group"`
+
+	// IssueSources says where the numbers in Issues came from. It is only set
+	// when issues are linked beyond the title (--link), and left out of the
+	// JSON otherwise, so the document is unchanged without it.
+	IssueSources *IssueSources `json:"issue_sources,omitempty"`
+}
+
+// IssueSources lists the issues of an item per source. A number can be in more
+// than one list; Issues is their union. The lists are never nil, and like the
+// Item fields they may be added to, never renamed.
+type IssueSources struct {
+	// Title holds the digit scopes of the title, in title order.
+	Title []int `json:"title"`
+
+	// Closing holds the issues the pull request closes on GitHub
+	// (closingIssuesReferences), ascending.
+	Closing []int `json:"closing"`
 }
 
 // Release is the items JSON document: the repository and range the items were
