@@ -15,9 +15,16 @@ public API: they may be added to, never renamed.**
   "previous_tag": "v3.6.2",
   "items": [
     {
-      "pr": 123, "title": "feat(6768,6747)!: …", "type": "feat", "scopes": ["6768", "6747"],
-      "breaking": true, "issues": [6768, 6747], "author": "octocat", "bot": false,
-      "url": "https://github.com/owner/repo/pull/123", "group": "features"
+      "pr": 123,
+      "title": "feat(6768,6747)!: …",
+      "type": "feat",
+      "scopes": ["6768", "6747"],
+      "breaking": true,
+      "issues": [6768, 6747],
+      "author": "octocat",
+      "bot": false,
+      "url": "https://github.com/owner/repo/pull/123",
+      "group": "features"
     }
   ]
 }
