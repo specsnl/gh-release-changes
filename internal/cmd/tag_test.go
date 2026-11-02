@@ -89,7 +89,7 @@ func TestTag_MissingWithoutATerminal(t *testing.T) {
 
 // A bad flag is reported before the missing tag, as it would be with one.
 func TestTag_FlagsAreCheckedFirst(t *testing.T) {
-	_, _, _, err := runApp(t, pickerApp(fixtureNotes(t, "final"), &fakeTags{}, nil), nil, "issues", "--issue-repo", "app")
+	_, _, _, err := runApp(t, pickerApp(fixtureNotes(t, "final"), &fakeTags{}, nil), nil, "issues", "--scope-issue-repo", "app")
 	if !errors.Is(err, releasechanges.ErrInvalidRepoRef) {
 		t.Errorf("error = %v, want ErrInvalidRepoRef", err)
 	}

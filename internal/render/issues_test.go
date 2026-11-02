@@ -8,7 +8,7 @@ import (
 )
 
 func TestIssues_Golden(t *testing.T) {
-	short := render.IssueRefs{IssueRepo: "example-org/web-components", TicketRepo: "example-org/web-components"}
+	short := render.IssueRefs{IssueRepo: "example-org/web-components", RelativeTo: "example-org/web-components"}
 
 	for _, name := range fixtures {
 		t.Run(name+"/short", func(t *testing.T) {
@@ -20,8 +20,8 @@ func TestIssues_Golden(t *testing.T) {
 		name string
 		refs render.IssueRefs
 	}{
-		{"full", render.IssueRefs{IssueRepo: "example-org/web-components", TicketRepo: "example-org/releases"}},
-		{"full-refs", render.IssueRefs{IssueRepo: "example-org/web-components", TicketRepo: "example-org/web-components", Full: true}},
+		{"full", render.IssueRefs{IssueRepo: "example-org/web-components", RelativeTo: "example-org/releases"}},
+		{"full-refs", render.IssueRefs{IssueRepo: "example-org/web-components", RelativeTo: "example-org/web-components", Full: true}},
 	} {
 		t.Run("final/"+tc.name, func(t *testing.T) {
 			assertGolden(t, "issues/final-"+tc.name+".golden", render.Issues(fixtureItems(t, "final"), tc.refs))
@@ -35,10 +35,10 @@ func TestIssueRefs_Ref(t *testing.T) {
 		refs render.IssueRefs
 		want string
 	}{
-		{"same repo", render.IssueRefs{IssueRepo: "o/app", TicketRepo: "o/app"}, "#42"},
-		{"same repo, other case", render.IssueRefs{IssueRepo: "O/App", TicketRepo: "o/app"}, "#42"},
-		{"other ticket repo", render.IssueRefs{IssueRepo: "o/app", TicketRepo: "o/tickets"}, "o/app#42"},
-		{"forced", render.IssueRefs{IssueRepo: "o/app", TicketRepo: "o/app", Full: true}, "o/app#42"},
+		{"same repo", render.IssueRefs{IssueRepo: "o/app", RelativeTo: "o/app"}, "#42"},
+		{"same repo, other case", render.IssueRefs{IssueRepo: "O/App", RelativeTo: "o/app"}, "#42"},
+		{"other ticket repo", render.IssueRefs{IssueRepo: "o/app", RelativeTo: "o/tickets"}, "o/app#42"},
+		{"forced", render.IssueRefs{IssueRepo: "o/app", RelativeTo: "o/app", Full: true}, "o/app#42"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := tc.refs.Ref(42); got != tc.want {
@@ -49,7 +49,7 @@ func TestIssueRefs_Ref(t *testing.T) {
 }
 
 func TestIssues(t *testing.T) {
-	refs := render.IssueRefs{IssueRepo: "o/app", TicketRepo: "o/app"}
+	refs := render.IssueRefs{IssueRepo: "o/app", RelativeTo: "o/app"}
 
 	for _, tc := range []struct {
 		name  string

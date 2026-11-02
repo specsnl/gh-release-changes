@@ -206,10 +206,10 @@ func TestDump_EverythingReadable(t *testing.T) {
 	}
 }
 
-func TestDump_IssueRepo(t *testing.T) {
+func TestDump_ScopeIssueRepo(t *testing.T) {
 	app, _, details := dumpApp(t)
 
-	_, stdout, _, _ := runApp(t, app, nil, "-R", "example-org/app", "dump", "v2.1.0", "--issue-repo", "example-org/tracker")
+	_, stdout, _, _ := runApp(t, app, nil, "-R", "example-org/app", "dump", "v2.1.0", "--scope-issue-repo", "example-org/tracker")
 
 	if len(details.requests) == 0 || details.requests[0].issueRepo != "example-org/tracker" {
 		t.Errorf("requests = %v, want issues from %q", details.requests, "example-org/tracker")
@@ -220,12 +220,12 @@ func TestDump_IssueRepo(t *testing.T) {
 	}
 }
 
-func TestDump_RejectsAMalformedIssueRepo(t *testing.T) {
+func TestDump_RejectsAMalformedScopeIssueRepo(t *testing.T) {
 	for _, value := range []string{"app", "o/", "github.com/o/app"} {
 		t.Run(value, func(t *testing.T) {
 			app, notes, details := dumpApp(t)
 
-			_, stdout, _, err := runApp(t, app, nil, "dump", "v2.1.0", "--issue-repo", value)
+			_, stdout, _, err := runApp(t, app, nil, "dump", "v2.1.0", "--scope-issue-repo", value)
 			if !errors.Is(err, releasechanges.ErrInvalidRepoRef) {
 				t.Fatalf("error = %v, want ErrInvalidRepoRef", err)
 			}

@@ -22,8 +22,8 @@ func TestIssues_PrintsTheRenderedList(t *testing.T) {
 		golden string
 	}{
 		{"defaults to the source repo", nil, "final-short"},
-		{"same repo given explicitly", []string{"--issue-repo", source, "--ticket-repo", source}, "final-short"},
-		{"different ticket repo", []string{"--ticket-repo", "example-org/releases"}, "final-full"},
+		{"same repo given explicitly", []string{"--scope-issue-repo", source, "--relative-to", source}, "final-short"},
+		{"relative to another repo", []string{"--relative-to", "example-org/releases"}, "final-full"},
 		{"--full-refs", []string{"--full-refs"}, "final-full-refs"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -46,12 +46,12 @@ func TestIssues_PrintsTheRenderedList(t *testing.T) {
 	}
 }
 
-// --issue-repo points the references elsewhere: they become full, because the
-// ticket repo is still the source repo.
-func TestIssues_IssueRepo(t *testing.T) {
+// --scope-issue-repo points the references elsewhere: they become full,
+// because they are still written relative to the source repo.
+func TestIssues_ScopeIssueRepo(t *testing.T) {
 	fake := &fakeNotes{notes: github.Notes{Body: "* fix(12): x by @alice in https://github.com/o/app/pull/3\n"}}
 
-	_, stdout, _, err := runApp(t, appWith(fake), nil, "-R", "o/app", "issues", "v2", "--issue-repo", "o/tracker")
+	_, stdout, _, err := runApp(t, appWith(fake), nil, "-R", "o/app", "issues", "v2", "--scope-issue-repo", "o/tracker")
 	if err != nil {
 		t.Fatalf("issues: %v", err)
 	}
@@ -63,7 +63,7 @@ func TestIssues_IssueRepo(t *testing.T) {
 
 // A malformed repository flag fails before anything is fetched.
 func TestIssues_RejectsMalformedRepoFlags(t *testing.T) {
-	for _, flag := range []string{"--issue-repo", "--ticket-repo"} {
+	for _, flag := range []string{"--scope-issue-repo", "--relative-to", "--issue-repo", "--ticket-repo"} {
 		for _, value := range []string{"app", "o/", "/app", "github.com/o/app", "o/my app"} {
 			t.Run(flag+"="+value, func(t *testing.T) {
 				fake := fixtureNotes(t, "final")

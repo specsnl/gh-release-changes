@@ -33,8 +33,8 @@ func newDumpCmd(app *App) *cobra.Command {
 		Args:  tagArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if issueRepo != "" && !isOwnerRepo(issueRepo) {
-				return fmt.Errorf("%w: --issue-repo %q (an issue reference takes OWNER/REPO, without a host)",
-					releasechanges.ErrInvalidRepoRef, issueRepo)
+				return fmt.Errorf("%w: --%s %q (an issue reference takes OWNER/REPO, without a host)",
+					releasechanges.ErrInvalidRepoRef, flagScopeIssueRepo, issueRepo)
 			}
 
 			tag, err := app.resolveTag(cmd, args)
@@ -78,7 +78,7 @@ func newDumpCmd(app *App) *cobra.Command {
 				details.Merge(more)
 			}
 
-			refs := render.IssueRefs{IssueRepo: issueRepo, TicketRepo: release.Repo}
+			refs := render.IssueRefs{IssueRepo: issueRepo, RelativeTo: release.Repo}
 
 			if _, err := io.WriteString(app.Stdout, render.Dump(release, details, refs)); err != nil {
 				return err
@@ -88,7 +88,9 @@ func newDumpCmd(app *App) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&issueRepo, "issue-repo", "", "The OWNER/REPO digit scopes point at (default: the source repository)")
+	cmd.Flags().StringVar(&issueRepo, flagScopeIssueRepo, "",
+		"The OWNER/REPO the digit scopes of the titles point at (default: the source repository)")
+	addRenamedFlags(cmd)
 
 	return cmd
 }

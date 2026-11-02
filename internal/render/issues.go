@@ -12,9 +12,10 @@ type IssueRefs struct {
 	// IssueRepo is the OWNER/REPO the digit scopes point at.
 	IssueRepo string
 
-	// TicketRepo is the OWNER/REPO the list is pasted into. A reference is short
-	// (#N) when it equals IssueRepo, and full (OWNER/REPO#N) otherwise.
-	TicketRepo string
+	// RelativeTo is the OWNER/REPO references are written relative to, usually
+	// the one the list is pasted into. A reference is short (#N) when it equals
+	// IssueRepo, and full (OWNER/REPO#N) otherwise.
+	RelativeTo string
 
 	// Full forces the full form everywhere.
 	Full bool
@@ -23,7 +24,7 @@ type IssueRefs struct {
 // Ref formats issue n.
 func (r IssueRefs) Ref(n int) string {
 	// GitHub resolves owner and repository names case-insensitively.
-	if !r.Full && strings.EqualFold(r.IssueRepo, r.TicketRepo) {
+	if !r.Full && strings.EqualFold(r.IssueRepo, r.RelativeTo) {
 		return fmt.Sprintf("#%d", n)
 	}
 

@@ -97,6 +97,8 @@ func (a *App) resolveFlags(cmd *cobra.Command) error {
 	a.Out = output.NewWriter(cmd.ErrOrStderr())
 	a.LogLevel = output.SetupLogger(cmd.ErrOrStderr(), a.Debug)
 
+	a.warnRenamedFlags(cmd)
+
 	if a.Repo != "" && !isRepoRef(a.Repo) {
 		return fmt.Errorf("%w: -R %q", releasechanges.ErrInvalidRepoRef, a.Repo)
 	}
