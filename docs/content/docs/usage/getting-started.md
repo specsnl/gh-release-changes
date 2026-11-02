@@ -38,6 +38,8 @@ cannot use the tool on it.
 gh release-changes sort v1.2.0            # grouped "What's Changed" Markdown
 gh release-changes issues v1.2.0          # plain issue list per group
 gh release-changes dump v1.2.0            # issue details to write release notes from
+gh release-changes check-notes v1.2.0 --file notes.md
+                                          # notes against the issues of the release
 gh release-changes items v1.2.0 | jq .    # the JSON every other output is rendered from
 ```
 

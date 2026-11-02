@@ -96,12 +96,13 @@ Every rendering command starts with the same step, `App.loadRelease` in `interna
 `changes.Release` with the resolved repository and the previous tag. Unclassified items are warned about there,
 once, on stderr. A command then only turns the `Release` into its product on stdout:
 
-| Command  | File        | Product                                                                              |
-|----------|-------------|--------------------------------------------------------------------------------------|
-| `items`  | `items.go`  | `changes.Release` marshalled as indented JSON                                        |
-| `sort`   | `sort.go`   | `render.Sort`: the grouped "What's Changed" Markdown                                 |
-| `issues` | `issues.go` | `render.Issues`, with the `render.IssueRefs` and `render.IssueList` its flags choose |
-| `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched |
+| Command       | File            | Product                                                                              |
+|---------------|-----------------|--------------------------------------------------------------------------------------|
+| `items`       | `items.go`      | `changes.Release` marshalled as indented JSON                                        |
+| `sort`        | `sort.go`       | `render.Sort`: the grouped "What's Changed" Markdown                                 |
+| `issues`      | `issues.go`     | `render.Issues`, with the `render.IssueRefs` and `render.IssueList` its flags choose |
+| `dump`        | `dump.go`       | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched |
+| `check-notes` | `checknotes.go` | `render.CheckNotes` over the `changes.Coverage` of the notes file                    |
 
 `dump` makes a second request after the notes: it asks the `DetailsSource` for every issue the items reference
 (`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). `Untracked`
@@ -112,6 +113,15 @@ does not link (`changes.UnlinkedPullRequests`) are asked for in a third request,
 and merged in (`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after
 the product is written; the command then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`.
 A failure of either details request as a whole fails the run before anything is printed.
+
+`check-notes` makes no request beyond the notes. It reads the file (or stdin for `-`) after the tag is resolved
+and before the notes are generated, so an unreadable file fails without a call to GitHub. `changes.NoteRefs`
+extracts the references from the text, resolving a bare `#N` against `--relative-to`, and `changes.CheckNotes`
+compares them with `changes.ReferencedIssues` in the `--scope-issue-repo` repository and with the release's pull
+requests in the source repository. Both are pure, so the extraction rules are table tests. A difference is
+written to stdout and the command returns a silent `*exit.Err{Code: exit.Mismatch}`, so the run exits `2`.
+`issues` and `check-notes` share `checkIssueRepoFlags` and `issueRefs`, so the two flags default and validate
+the same way in both.
 
 `issues --titles` makes one more request after the notes, and only when an issue is referenced: it asks the
 `TitleSource` for the titles of `changes.ReferencedIssues` in the `--scope-issue-repo` repository, and hands them

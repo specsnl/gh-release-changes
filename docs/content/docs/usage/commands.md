@@ -20,6 +20,9 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 │     [--titles]                               * #N <title>, titles read from GitHub
 ├── dump [<tag>]                               issue details to write release notes from
 │     [--scope-issue-repo owner/repo]
+├── check-notes [<tag>] --file <path>          release notes against the issues of the release
+│     [--scope-issue-repo owner/repo]          default: the source repo
+│     [--relative-to owner/repo]               default: the source repo
 └── version
 ```
 
@@ -361,3 +364,47 @@ stdout:
 - `--scope-issue-repo` takes `OWNER/REPO` without a host, as for `issues`, where its old name `--issue-repo`
   also still works; issues from another repository are written as `OWNER/REPO#N`. A malformed value fails
   before anything is fetched, with exit code `1` and the same error as for `issues`.
+
+## `check-notes`
+
+```shell
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] check-notes [<tag>] --file <path>
+                   [--scope-issue-repo OWNER/REPO] [--relative-to OWNER/REPO]
+```
+
+Checks release notes — written by hand or with a writing skill — against the release: every issue of the release
+is referenced in them, and nothing outside it is. `--file -` reads the notes from stdin. The report is Markdown
+on stdout:
+
+```markdown
+## Notes check
+
+### Issues missing from the notes
+
+* #1514
+
+### References outside the release
+
+* example-org/design-system#88
+* #1600
+```
+
+Notes that cover the release print `The notes reference every issue of the release, and nothing outside it.`
+and exit `0`; a section is left out when it is empty, and any difference exits `2`. That is the answer to the
+question, not a failure: branch on it with `(( code & 2 ))`.
+
+- **The issues of the release** are the digit scopes of the titles, as for `issues`, in the
+  `--scope-issue-repo` repository (default: the source repository).
+- **The references in the notes** are `#N`, `OWNER/REPO#N`, and issue and pull request URLs
+  (`https://HOST/OWNER/REPO/issues/N`, `…/pull/N`). A bare `#N` is in the `--relative-to` repository (default:
+  the source repository): set it to where the notes are published when that is not the source repository.
+  Repositories are compared without regard to case.
+- **A reference to one of the release's own pull requests** is in the release, so it is not reported — notes
+  may name the pull request of a change without an issue. It does not cover the issue the pull request fixes.
+- What GitHub would not link is not read as a reference either: `#N` glued to a word or a path (`v2#3`,
+  `docs/setup.md#12`), an HTML entity (`&#39;`), or a number followed by letters (`#12abc`). References in code
+  blocks are read like any other.
+- The report writes its references relative to the `--relative-to` repository, as `issues` does.
+- `--file` is required; a file that cannot be read fails the run with exit code `1` before the release is
+  fetched. The repository flags take `OWNER/REPO` without a host and are checked first, with the same error as
+  for `issues`; their old names `--issue-repo` and `--ticket-repo` also still work here.

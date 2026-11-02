@@ -48,8 +48,9 @@ table.
 
 - Commands never call `os.Exit`, which skips deferred cleanup. They return an error; `main` maps it with
   `exit.Of` — `0` for nil, the carried code for an `*exit.Err`, `1` for anything else.
-- An outcome that is not a failure (`4`, skipped) travels on an `*exit.Err` with a nil `Err` field. `main` prints
-  nothing for it: the command already warned about what it skipped.
+- An outcome that is not a failure (`2`, mismatch, or `4`, skipped) travels on an `*exit.Err` with a nil `Err`
+  field. `main` prints nothing for it: the command already reported the mismatch on stdout, or warned about what
+  it skipped.
 - A carrier holding a real failure never exits `0`, even with its code left unset.
-- `1` is exclusive and never combined with an outcome bit. Bit `2` is unassigned, so the numbers stay those of
-  labelsync.
+- `1` is exclusive and never combined with an outcome bit. The outcome bits are labelsync's: `2` is its drift,
+  `4` its skipped.

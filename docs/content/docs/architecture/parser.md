@@ -7,11 +7,12 @@ weight: 4
 takes the body as a string, and returns plain structs, so every rule below is covered by table tests and golden
 files without HTTP.
 
-| File       | Holds                                                                                          |
-|------------|------------------------------------------------------------------------------------------------|
-| `item.go`  | `Item`, `Release` (the [items JSON]({{< ref "../usage/items-json.md" >}})), `Group`, `Section` |
-| `parse.go` | `Parse(body) []Item`: line format, title format, classification                                |
-| `sort.go`  | `Sort(items)`, `Sections(items)` and `Section.Issues()`: display order, issue deduplication    |
+| File       | Holds                                                                                                |
+|------------|------------------------------------------------------------------------------------------------------|
+| `item.go`  | `Item`, `Release` (the [items JSON]({{< ref "../usage/items-json.md" >}})), `Group`, `Section`       |
+| `parse.go` | `Parse(body) []Item`: line format, title format, classification                                      |
+| `sort.go`  | `Sort(items)`, `Sections(items)` and `Section.Issues()`: display order, issue deduplication          |
+| `notes.go` | `NoteRefs(text, relativeTo)` and `CheckNotes(release, issueRepo, refs)`: what `check-notes` compares |
 
 ## Lines
 
