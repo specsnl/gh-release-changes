@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"io"
 	"slices"
 
 	"github.com/spf13/cobra"
 
 	"github.com/specsnl/gh-release-changes/internal/changes"
-	"github.com/specsnl/gh-release-changes/internal/releasechanges"
 	"github.com/specsnl/gh-release-changes/internal/render"
 	"github.com/specsnl/gh-release-changes/internal/util/exit"
 )
@@ -32,9 +30,8 @@ func newDumpCmd(app *App) *cobra.Command {
 		Short: "Print the issues and pull requests of a release in detail, for the writing skills",
 		Args:  tagArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if issueRepo != "" && !isOwnerRepo(issueRepo) {
-				return fmt.Errorf("%w: --%s %q (an issue reference takes OWNER/REPO, without a host)",
-					releasechanges.ErrInvalidRepoRef, flagScopeIssueRepo, issueRepo)
+			if err := checkIssueRepoFlags(issueRepo, ""); err != nil {
+				return err
 			}
 
 			tag, err := app.resolveTag(cmd, args)

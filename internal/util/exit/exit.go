@@ -9,8 +9,8 @@
 //
 // The outcome codes are disjoint bits that OR together, so a run that satisfies
 // more than one outcome reports all of them rather than the most alarming one.
-// Today there is one outcome, [Skipped]. Bit 2 is left unassigned so the numbers
-// stay those of labelsync, where it means drift.
+// The numbers are those of labelsync: [Mismatch] is its drift, and [Skipped]
+// its skipped.
 //
 // [Error] is deliberately not part of that bit space. It is the classic Unix
 // generic failure and it is exclusive: when a run fails, nothing about its
@@ -39,6 +39,12 @@ const (
 	// about the product from this code, which is why it is exclusive rather than
 	// a bit combined with the outcomes below.
 	Error Code = 1
+
+	// Mismatch means the product was rendered, and it reports a difference the
+	// caller asked about: `check-notes` found issues of the release missing from
+	// the notes, or references in them outside the release. It is labelsync's
+	// drift.
+	Mismatch Code = 1 << 1
 
 	// Skipped means the product was rendered, but something had to be left out —
 	// an issue `dump` could not read, for example. Those failures are reported on

@@ -31,14 +31,8 @@ func newIssuesCmd(app *App) *cobra.Command {
 		Short: "Print the issues of a release per group, for the release ticket",
 		Args:  tagArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			for _, f := range []struct{ name, value string }{
-				{"--" + flagScopeIssueRepo, scopeIssueRepo},
-				{"--" + flagRelativeTo, relativeTo},
-			} {
-				if f.value != "" && !isOwnerRepo(f.value) {
-					return fmt.Errorf("%w: %s %q (an issue reference takes OWNER/REPO, without a host)",
-						releasechanges.ErrInvalidRepoRef, f.name, f.value)
-				}
+			if err := checkIssueRepoFlags(scopeIssueRepo, relativeTo); err != nil {
+				return err
 			}
 
 			tag, err := app.resolveTag(cmd, args)
@@ -51,19 +45,8 @@ func newIssuesCmd(app *App) *cobra.Command {
 				return err
 			}
 
-			refs := render.IssueRefs{
-				IssueRepo:  release.Repo,
-				SourceRepo: release.Repo,
-				RelativeTo: release.Repo,
-				Full:       fullRefs,
-			}
-			if scopeIssueRepo != "" {
-				refs.IssueRepo = scopeIssueRepo
-			}
-
-			if relativeTo != "" {
-				refs.RelativeTo = relativeTo
-			}
+			refs := issueRefs(release, scopeIssueRepo, relativeTo)
+			refs.Full = fullRefs
 
 			var unreadable map[int]string
 
@@ -109,6 +92,38 @@ func newIssuesCmd(app *App) *cobra.Command {
 	addRenamedFlags(cmd)
 
 	return cmd
+}
+
+// checkIssueRepoFlags rejects a --scope-issue-repo or --relative-to that is
+// not OWNER/REPO; an empty value is a flag that was not given.
+func checkIssueRepoFlags(scopeIssueRepo, relativeTo string) error {
+	for _, f := range []struct{ name, value string }{
+		{"--" + flagScopeIssueRepo, scopeIssueRepo},
+		{"--" + flagRelativeTo, relativeTo},
+	} {
+		if f.value != "" && !isOwnerRepo(f.value) {
+			return fmt.Errorf("%w: %s %q (an issue reference takes OWNER/REPO, without a host)",
+				releasechanges.ErrInvalidRepoRef, f.name, f.value)
+		}
+	}
+
+	return nil
+}
+
+// issueRefs returns the references of release, with --scope-issue-repo and
+// --relative-to defaulting to the source repository.
+func issueRefs(release changes.Release, scopeIssueRepo, relativeTo string) render.IssueRefs {
+	refs := render.IssueRefs{IssueRepo: release.Repo, SourceRepo: release.Repo, RelativeTo: release.Repo}
+
+	if scopeIssueRepo != "" {
+		refs.IssueRepo = scopeIssueRepo
+	}
+
+	if relativeTo != "" {
+		refs.RelativeTo = relativeTo
+	}
+
+	return refs
 }
 
 // isOwnerRepo reports whether ref is OWNER/REPO: an issue reference has no

@@ -21,6 +21,7 @@ func TestCodes_AreStable(t *testing.T) {
 	}{
 		{"OK", exit.OK, 0},
 		{"Error", exit.Error, 1},
+		{"Mismatch", exit.Mismatch, 2},
 		{"Skipped", exit.Skipped, 4},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -41,6 +42,7 @@ func TestOutcomeCodes_AreDisjointSingleBits(t *testing.T) {
 		name string
 		code exit.Code
 	}{
+		{"Mismatch", exit.Mismatch},
 		{"Skipped", exit.Skipped},
 	} {
 		if tc.code&(tc.code-1) != 0 {
@@ -71,6 +73,7 @@ func TestOf(t *testing.T) {
 		{"a plain error is a failure", errors.New("boom"), exit.Error},
 		{"a wrapped sentinel is a failure", sentinel, exit.Error},
 		{"a carrier reports its code", &exit.Err{Code: exit.Skipped}, exit.Skipped},
+		{"outcomes combine", &exit.Err{Code: exit.Mismatch | exit.Skipped}, 6},
 		{"a carrier with a failure", &exit.Err{Code: exit.Error, Err: sentinel}, exit.Error},
 		// Left unset by mistake: a failed run must not exit zero, because that is
 		// the one wrong answer a pipeline cannot detect.

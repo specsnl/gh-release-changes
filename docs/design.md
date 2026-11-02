@@ -160,17 +160,21 @@ gh release-changes [-R owner/repo]              default: the repository of the c
 │     [--titles]                                * #N <title>, titles read from GitHub
 ├── dump [<tag>]                                issue details for the writing skills
 │     [--scope-issue-repo owner/repo]
+├── check-notes [<tag>] --file <path>           release notes against the issues of the release
+│     [--scope-issue-repo owner/repo]           default: the source repo
+│     [--relative-to owner/repo]                default: the source repo
 ├── ticket [<tag>]                              (later) create/update the release issue
 └── version
 ```
 
-| Command  | Output                                                     | Used by                                  |
-|----------|------------------------------------------------------------|------------------------------------------|
-| `items`  | JSON: repo, tag, previous tag and the items                | skills, automation (contract)            |
-| `sort`   | Grouped "What's Changed" Markdown                          | `sort-release-changes`                   |
-| `issues` | Plain issue list per group                                 | `sort-release-changes`                   |
-| `dump`   | Issue details, comments and linked PRs for the LLM         | `write-release-notes`, `write-changelog` |
-| `ticket` | (later) create/update the release issue in the ticket repo | automation                               |
+| Command       | Output                                                                        | Used by                                  |
+|---------------|-------------------------------------------------------------------------------|------------------------------------------|
+| `items`       | JSON: repo, tag, previous tag and the items                                   | skills, automation (contract)            |
+| `sort`        | Grouped "What's Changed" Markdown                                             | `sort-release-changes`                   |
+| `issues`      | Plain issue list per group                                                    | `sort-release-changes`                   |
+| `dump`        | Issue details, comments and linked PRs for the LLM                            | `write-release-notes`, `write-changelog` |
+| `check-notes` | The issues missing from release notes, and the references outside the release | skills, automation                       |
+| `ticket`      | (later) create/update the release issue in the ticket repo                    | automation                               |
 
 The product of every command goes to stdout; everything else — progress, warnings, errors — goes to stderr, so
 `gh release-changes sort v1.2.0 > notes.md` captures only the notes.
@@ -234,6 +238,14 @@ through GraphQL, one aliased field per number and 25 numbers per query, so a rel
 An issue that cannot be read is noted in the output and reported on stderr; it does not abort the dump, and
 the run exits `4`.
 
+### `check-notes`
+
+Release notes against the release, mechanically, so a writing skill can check its own output: the issues of the
+release (`changes.ReferencedIssues`, in `--scope-issue-repo`) the notes do not reference, and the references in
+the notes (`#N` in `--relative-to`, `OWNER/REPO#N`, issue and pull request URLs) to neither an issue nor a pull
+request of the release. Extraction and comparison are pure, in `internal/changes/notes.go`. A difference is an
+outcome, `2`, not an error.
+
 ### Exit codes
 
 Borrowed from labelsync, which borrowed them from `terraform plan -detailed-exitcode`. The outcome codes are
@@ -243,15 +255,16 @@ disjoint bits and combine; `1` stays exclusive.
 |------|-----------------------------------------------------------------------------------|
 | `0`  | Success                                                                           |
 | `1`  | Error (unknown tag, auth failure, unrecoverable API error, interactive guard)     |
+| `2`  | Rendered, and it reports a mismatch — `check-notes` found a difference            |
 | `4`  | Rendered, but something was skipped — an issue `dump` could not read, for example |
 
 Unclassified items are not an outcome: they are rendered and warned about, and the run still exits `0` — see
 [Decisions](#decisions).
 
-Bit `2` is unassigned, so the numbers stay those of labelsync (where it means drift). `internal/util/exit` holds
-the codes; a command returns an error and never calls `os.Exit`. An outcome that is not a failure travels on an
-`*exit.Err` with a nil `Err` field, and `main` maps the error to a code with `exit.Of` and prints it — or nothing,
-for a silent carrier — through `output.Writer`.
+The bits are those of labelsync: `2` is its drift, which `check-notes` uses for notes that disagree with the
+release. `internal/util/exit` holds the codes; a command returns an error and never calls `os.Exit`. An outcome
+that is not a failure travels on an `*exit.Err` with a nil `Err` field, and `main` maps the error to a code with
+`exit.Of` and prints it — or nothing, for a silent carrier — through `output.Writer`.
 
 ### Non-interactive guard
 
@@ -279,6 +292,7 @@ gh-release-changes/
     │   ├── sort.go
     │   ├── issues.go
     │   ├── dump.go
+    │   ├── checknotes.go         # release notes against the issues of the release
     │   ├── notes.go              # hidden: the raw generated body, for debugging
     │   └── version.go
     ├── github/                   # the only package that talks to GitHub, through go-gh
@@ -289,7 +303,8 @@ gh-release-changes/
     ├── changes/                  # pure, no network
     │   ├── item.go               # Item, Group, Release — the items JSON contract
     │   ├── parse.go              # generated-notes body → []Item (the parser rules)
-    │   └── sort.go               # grouping, ordering, issue deduplication
+    │   ├── sort.go               # grouping, ordering, issue deduplication
+    │   └── notes.go              # references in release notes, compared with the release
     ├── render/                   # pure: Release → sort Markdown, issue list, dump Markdown
     ├── semver/                   # pure: tag ordering for the picker
     └── util/
