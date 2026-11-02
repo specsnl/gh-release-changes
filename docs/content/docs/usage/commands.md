@@ -14,7 +14,7 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 │     [--scope-issue-repo owner/repo]          default: the source repo
 │     [--relative-to owner/repo]               default: the source repo
 │     [--full-refs]
-├── dump [<tag>]                               issue details for the writing skills
+├── dump [<tag>]                               issue details to write release notes from
 │     [--scope-issue-repo owner/repo]
 └── version
 ```
@@ -27,7 +27,11 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 | `--previous-tag <tag>` | GitHub's choice                | Compare with this tag instead                               |
 | `--debug`              | off                            | Write `slog` debug diagnostics to stderr                    |
 
-A malformed `-R` fails before anything is fetched, with exit code `1` and the kind `invalid_repo_ref`.
+A malformed `-R` fails before anything is fetched, with exit code `1` and an error along the lines of:
+
+```text
+error: invalid repository reference: want [HOST/]OWNER/REPO: -R "acme"
+```
 
 ## The tag
 
@@ -41,7 +45,14 @@ offers the repository's tags to pick from:
 
 The picker is drawn on stderr, so `gh release-changes sort > notes.md` still captures only the notes. It is only
 shown when stdin and stdout are terminals: without one — in a pipeline, a script or an agent's shell — a missing
-tag fails at once with exit code `1` and the kind `interactive_required`. Skills always pass the tag.
+tag fails at once with exit code `1` and an error along the lines of:
+
+```text
+error: operation requires an interactive terminal: pass the tag, as in `gh release-changes sort <tag>`,
+or run it in a terminal to pick one
+```
+
+Scripts and agents should always pass the tag.
 
 `--previous-tag` has no picker: GitHub's choice of base fits the release flow, and the flag takes a tag when you
 want another one.
@@ -113,8 +124,8 @@ Prints the grouped "What's Changed" list as Markdown on stdout, for developers a
 - A breaking change (a `!` before the colon) is prefixed with `**Breaking:**`; the title itself is unchanged.
 - Unclassified items are named in a warning on stderr, as for `items`.
 
-The output is stable — the same release always renders the same bytes — because the `sort-release-changes`
-skill prints it unchanged.
+The output is stable — the same release always renders the same bytes — so it can be pasted into a release
+description, or compared by a script, as is.
 
 ## `issues`
 
@@ -151,7 +162,12 @@ listed ascending and deduplicated; groups without issues are left out, and a rel
 A reference is short (`#N`) when the `--scope-issue-repo` repository equals the `--relative-to` repository,
 compared without regard to case, and full (`OWNER/REPO#N`) otherwise, so it links to the right issue wherever
 the list is pasted. Both flags take `OWNER/REPO` without a host; anything else fails before anything is fetched,
-with exit code `1` and the kind `invalid_repo_ref`.
+with exit code `1` and an error along the lines of:
+
+```text
+error: invalid repository reference: want [HOST/]OWNER/REPO: --scope-issue-repo "github.com/acme/web"
+(an issue reference takes OWNER/REPO, without a host)
+```
 
 **Renamed flags.** `--scope-issue-repo` and `--relative-to` were called `--issue-repo` and `--ticket-repo` up
 to v0.2. The old names are hidden from the help but still work, with a warning on stderr; they will be removed
@@ -174,7 +190,7 @@ contract and may change or go away.
 gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] dump [<tag>] [--scope-issue-repo OWNER/REPO]
 ```
 
-Prints everything the writing skills (`write-release-notes`, `write-changelog`) need as one Markdown document on
+Prints everything needed to write release notes or a changelog for the release as one Markdown document on
 stdout:
 
 - **Every referenced issue** — the digit scopes of the titles, read from `--scope-issue-repo` (default: the
@@ -269,4 +285,4 @@ stdout:
   in a warning on stderr. The rest of the dump is still printed, and the run exits `4` rather than `0`.
 - `--scope-issue-repo` takes `OWNER/REPO` without a host, as for `issues`, where its old name `--issue-repo`
   also still works; issues from another repository are written as `OWNER/REPO#N`. A malformed value fails
-  before anything is fetched, with exit code `1` and the kind `invalid_repo_ref`.
+  before anything is fetched, with exit code `1` and the same error as for `issues`.
