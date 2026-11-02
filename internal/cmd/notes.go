@@ -27,7 +27,12 @@ func newNotesCmd(app *App) *cobra.Command {
 				return err
 			}
 
-			notes, err := source.GenerateNotes(cmd.Context(), tag, app.PreviousTag)
+			previousTag, err := app.previousTag(cmd.Context(), tag)
+			if err != nil {
+				return err
+			}
+
+			notes, err := source.GenerateNotes(cmd.Context(), tag, previousTag)
 			if err != nil {
 				return err
 			}

@@ -36,17 +36,12 @@ const (
 // fail the call: it lands in an Unreadable map with GitHub's reason. Only a
 // failure of the request as a whole is returned as an error.
 func (c *Client) Details(ctx context.Context, issueRepo string, issues, pullRequests []int) (changes.Details, error) {
-	owner, name, ok := strings.Cut(issueRepo, "/")
-	if !ok || owner == "" || name == "" || strings.Contains(name, "/") {
-		return changes.Details{}, fmt.Errorf("%w: %s", releasechanges.ErrInvalidRepoRef, issueRepo)
+	owner, name, err := splitIssueRepo(issueRepo)
+	if err != nil {
+		return changes.Details{}, err
 	}
 
-	details := changes.Details{
-		Issues:                 map[int]changes.Issue{},
-		PullRequests:           map[int]changes.PullRequest{},
-		UnreadableIssues:       map[int]string{},
-		UnreadablePullRequests: map[int]string{},
-	}
+	details := newDetails()
 
 	for len(issues) > 0 || len(pullRequests) > 0 {
 		var batchIssues, batchPRs []int
@@ -71,6 +66,58 @@ func (c *Client) Details(ctx context.Context, issueRepo string, issues, pullRequ
 	return details, nil
 }
 
+// IssueTitles fetches only the titles of the issues of issueRepo (OWNER/REPO,
+// on the client's host), one GraphQL query per batch. What cannot be read
+// lands in Unreadable, as for [Client.Details].
+func (c *Client) IssueTitles(ctx context.Context, issueRepo string, issues []int) (changes.IssueTitles, error) {
+	owner, name, err := splitIssueRepo(issueRepo)
+	if err != nil {
+		return changes.IssueTitles{}, err
+	}
+
+	details := newDetails()
+
+	for len(issues) > 0 {
+		var batch []int
+
+		batch, issues = cut(issues, detailsBatch)
+
+		q := detailsQuery{issueOwner: owner, issueName: name, issues: batch, titlesOnly: true}
+
+		if err := c.fetchDetails(ctx, q, &details); err != nil {
+			return changes.IssueTitles{}, err
+		}
+	}
+
+	titles := changes.IssueTitles{Titles: map[int]string{}, Unreadable: details.UnreadableIssues}
+	for n, issue := range details.Issues {
+		titles.Titles[n] = issue.Title
+	}
+
+	slog.Debug("issue titles fetched", "issue_repo", issueRepo,
+		"titles", len(titles.Titles), "unreadable", len(titles.Unreadable))
+
+	return titles, nil
+}
+
+func splitIssueRepo(issueRepo string) (owner, name string, err error) {
+	owner, name, ok := strings.Cut(issueRepo, "/")
+	if !ok || owner == "" || name == "" || strings.Contains(name, "/") {
+		return "", "", fmt.Errorf("%w: %s", releasechanges.ErrInvalidRepoRef, issueRepo)
+	}
+
+	return owner, name, nil
+}
+
+func newDetails() changes.Details {
+	return changes.Details{
+		Issues:                 map[int]changes.Issue{},
+		PullRequests:           map[int]changes.PullRequest{},
+		UnreadableIssues:       map[int]string{},
+		UnreadablePullRequests: map[int]string{},
+	}
+}
+
 // cut splits off the first n numbers.
 func cut(numbers []int, n int) (head, tail []int) {
 	n = min(n, len(numbers))
@@ -83,6 +130,9 @@ func cut(numbers []int, n int) (head, tail []int) {
 type detailsQuery struct {
 	issueOwner, issueName string
 	issues                []int
+
+	// titlesOnly selects an issue's number and title, and nothing else.
+	titlesOnly bool
 
 	prOwner, prName string
 	pullRequests    []int
@@ -107,6 +157,11 @@ const pullRequestFragment = `fragment pullRequest on PullRequest {
 }
 `
 
+const issueTitleFragment = `fragment issueTitle on Issue {
+  number title
+}
+`
+
 var issueFragment = fmt.Sprintf(`fragment issue on Issue {
   number title body state url
   labels(first: %d) { nodes { name } }
@@ -126,9 +181,14 @@ func (q detailsQuery) text() (string, map[string]any) {
 		params = append(params, "$issueOwner: String!", "$issueName: String!")
 		vars["issueOwner"], vars["issueName"] = q.issueOwner, q.issueName
 
+		fragment := "issue"
+		if q.titlesOnly {
+			fragment = "issueTitle"
+		}
+
 		aliases := make([]string, len(q.issues))
 		for i, n := range q.issues {
-			aliases[i] = fmt.Sprintf("%s: issue(number: %d) { ...issue }", issueAlias(n), n)
+			aliases[i] = fmt.Sprintf("%s: issue(number: %d) { ...%s }", issueAlias(n), n, fragment)
 		}
 
 		fields = append(fields, fmt.Sprintf("%s: repository(owner: $issueOwner, name: $issueName) {\n    %s\n  }",
@@ -152,11 +212,18 @@ func (q detailsQuery) text() (string, map[string]any) {
 
 	fmt.Fprintf(&b, "query(%s) {\n  %s\n}\n", strings.Join(params, ", "), strings.Join(fields, "\n  "))
 
-	if len(q.issues) > 0 {
+	switch {
+	case len(q.issues) > 0 && q.titlesOnly:
+		b.WriteString(issueTitleFragment)
+	case len(q.issues) > 0:
 		b.WriteString(issueFragment)
 	}
 
-	b.WriteString(pullRequestFragment)
+	// The full issue fragment spreads ...pullRequest for its closing pull
+	// requests.
+	if len(q.pullRequests) > 0 || (len(q.issues) > 0 && !q.titlesOnly) {
+		b.WriteString(pullRequestFragment)
+	}
 
 	return b.String(), vars
 }

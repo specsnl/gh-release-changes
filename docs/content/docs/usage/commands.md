@@ -6,6 +6,7 @@ weight: 2
 ```text
 gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the current directory
                    [--previous-tag <tag>]      default: GitHub's choice
+                   [--since-final]             compare with the previous final release
                    [--debug]                   slog diagnostics on stderr
 │
 ├── items [<tag>]                              JSON contract
@@ -14,6 +15,9 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 │     [--scope-issue-repo owner/repo]          default: the source repo
 │     [--relative-to owner/repo]               default: the source repo
 │     [--full-refs]
+│     [--unlinked]                             also the pull requests without an issue
+│     [--tasks]                                - [ ] #N instead of * #N
+│     [--titles]                               * #N <title>, titles read from GitHub
 ├── dump [<tag>]                               issue details to write release notes from
 │     [--scope-issue-repo owner/repo]
 └── version
@@ -25,6 +29,7 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 |------------------------|--------------------------------|-------------------------------------------------------------|
 | `-R`, `--repo`         | the current directory's remote | The source repository, as `OWNER/REPO` or `HOST/OWNER/REPO` |
 | `--previous-tag <tag>` | GitHub's choice                | Compare with this tag instead                               |
+| `--since-final`        | off                            | Compare with the newest final release older than the tag    |
 | `--debug`              | off                            | Write `slog` debug diagnostics to stderr                    |
 
 A malformed `-R` fails before anything is fetched, with exit code `1` and an error along the lines of:
@@ -32,6 +37,8 @@ A malformed `-R` fails before anything is fetched, with exit code `1` and an err
 ```text
 error: invalid repository reference: want [HOST/]OWNER/REPO: -R "acme"
 ```
+
+`--previous-tag` and `--since-final` exclude each other; passing both fails with exit code `1`.
 
 ## The tag
 
@@ -73,6 +80,25 @@ A final is compared with the previous final, so it covers the whole release-cand
 overrides the base. Both tags must exist: `generate-notes` silently compares the default branch for an unknown
 tag, so the tool checks them first and fails with `tag_not_found`.
 
+### The whole release cycle: `--since-final`
+
+A later release candidate is compared with the one before it, so its list holds only what changed since. A
+release ticket covers the whole release, though: it is created at `rc.1` and updated as candidates follow, and
+should not shrink to the delta. `--since-final` compares with the newest final release — a semantic version
+without a pre-release — older than the tag:
+
+| Target        | GitHub's choice | `--since-final` |
+|---------------|-----------------|-----------------|
+| `v3.8.0-rc.1` | `v3.7.1`        | `v3.7.1`        |
+| `v3.8.0-rc.3` | `v3.8.0-rc.2`   | `v3.7.1`        |
+| `v3.8.0`      | `v3.7.1`        | `v3.7.1`        |
+| `v3.7.1`      | `v3.7.0`        | `v3.7.0`        |
+
+So every candidate of a release lists the same range its final will. The tags are read from the repository and
+ordered by semantic version; tags that are not a semantic version are ignored. When there is no older final
+release — the first release, or a tag that is no semantic version — the base is GitHub's choice after all, and
+an `info:` line on stderr says so. `--since-final` excludes `--previous-tag`, and works for every command.
+
 ## Access
 
 Authentication is `gh`'s own: `gh auth login`, `GH_TOKEN`, and `GH_HOST` or `-R HOST/OWNER/REPO` for GitHub
@@ -87,7 +113,7 @@ Prints `gh-release-changes version <version>` to stdout.
 ## `items`
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] items [<tag>]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] items [<tag>]
 ```
 
 Prints the changes of the release as one JSON object on stdout: the contract skills and automation build on.
@@ -99,7 +125,7 @@ group and are named in a warning on stderr. They do not change the exit code.
 ## `sort`
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] sort [<tag>]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] sort [<tag>]
 ```
 
 Prints the grouped "What's Changed" list as Markdown on stdout, for developers and ops:
@@ -130,8 +156,9 @@ description, or compared by a script, as is.
 ## `issues`
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] issues [<tag>]
-                   [--scope-issue-repo OWNER/REPO] [--relative-to OWNER/REPO] [--full-refs]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] issues [<tag>]
+                   [--scope-issue-repo OWNER/REPO] [--relative-to OWNER/REPO] [--full-refs] [--unlinked]
+                   [--tasks] [--titles]
 ```
 
 Prints a plain issue list per group as Markdown on stdout, for the release ticket (PO, QA, acceptance):
@@ -158,6 +185,9 @@ listed ascending and deduplicated; groups without issues are left out, and a rel
 | `--scope-issue-repo OWNER/REPO` | the source repository | The repository the digit scopes of the titles point at                             |
 | `--relative-to OWNER/REPO`      | the source repository | The repository references are written relative to: the one the list is pasted into |
 | `--full-refs`                   | off                   | Write every reference as `OWNER/REPO#N`                                            |
+| `--unlinked`                    | off                   | Also list the pull requests without an issue                                       |
+| `--tasks`                       | off                   | Write every line as a task: `- [ ] #N`                                             |
+| `--titles`                      | off                   | Follow every issue reference with its title                                        |
 
 A reference is short (`#N`) when the `--scope-issue-repo` repository equals the `--relative-to` repository,
 compared without regard to case, and full (`OWNER/REPO#N`) otherwise, so it links to the right issue wherever
@@ -174,10 +204,54 @@ to v0.2. The old names are hidden from the help but still work, with a warning o
 in a later release ([#44](https://github.com/specsnl/gh-release-changes/issues/44)). Giving a flag under both
 names is an error.
 
+### Line formats
+
+By default a line is a bullet with the bare reference, `* #12`: GitHub expands it with the issue's title and
+state where the list is pasted. Two flags change the line for other places, and combine:
+
+| Flags              | Line                | For                                                |
+|--------------------|---------------------|----------------------------------------------------|
+| —                  | `* #12`             | GitHub                                             |
+| `--tasks`          | `- [ ] #12`         | A GitHub release ticket QA ticks issues off in     |
+| `--titles`         | `* #12 <title>`     | Places that do not expand references: Zammad, mail |
+| `--tasks --titles` | `- [ ] #12 <title>` | Both                                               |
+
+- `--tasks` needs no extra request: GitHub renders a task-list reference with the issue's title and state too.
+  With `--unlinked` the pull request lines become tasks as well.
+- `--titles` reads the titles from the `--scope-issue-repo` repository, one GraphQL request per 25 issues, and
+  only when an issue is referenced. The pull request lines of `--unlinked` already carry their title.
+- An issue whose title cannot be read keeps its bare reference, is named in a warning on stderr, and the run
+  exits `4`; the list is still printed.
+- Grouping and ordering do not change.
+
+### Pull requests without an issue
+
+`--unlinked` adds a section after the issues, so nothing in the release stays invisible in the ticket:
+
+```markdown
+### Pull requests without an issue
+
+* #1439 ci: update github actions and enable npm provenance
+* #1543 feat: add a project metadata file
+* #1565 Release v19.0.0
+```
+
+- It lists every pull request without a digit scope, by PR number, with its title as GitHub has it —
+  features and fixes, but also Other, Maintenance and Unclassified changes.
+- Dependency updates are left out: Dependabot bumps are noise in a ticket. There is no flag to bring them back;
+  `sort` lists them.
+- A pull request is in the source repository, so its reference is short when the `--relative-to` repository is
+  the source repository and full otherwise — also when `--scope-issue-repo` points the issues elsewhere.
+  `--full-refs` makes it full too.
+- The section is left out when there is nothing to list, and without `--unlinked` the output is unchanged.
+- Back-merges of a release branch (`chore: release/v3.8.0 >> main`) are Maintenance, so they are listed. Keep
+  them out of the generated notes altogether with an `exclude` in the repository's `.github/release.yml`, which
+  takes them out of every command's output, rather than out of this list alone.
+
 ## `notes` (hidden)
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] notes [<tag>]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] notes [<tag>]
 ```
 
 A debugging aid, left out of `--help`: prints the body `generate-notes` returned for the tag, unparsed, to
@@ -187,7 +261,8 @@ contract and may change or go away.
 ## `dump`
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] dump [<tag>] [--scope-issue-repo OWNER/REPO]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] dump [<tag>]
+                   [--scope-issue-repo OWNER/REPO]
 ```
 
 Prints everything needed to write release notes or a changelog for the release as one Markdown document on

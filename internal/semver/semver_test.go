@@ -131,3 +131,39 @@ func TestSort_IsTotalAndLeavesTheInputAlone(t *testing.T) {
 		t.Errorf("Sort depends on the input order: %v and %v", first, second)
 	}
 }
+
+func TestPreviousFinal(t *testing.T) {
+	tags := []string{
+		"v3.7.0", "v3.7.1", "v3.8.0-rc.1", "v3.8.0-rc.2", "v3.8.0", "v3.8.1",
+		"v3.9.0-rc.1", "v3.9.0-rc.2", "latest", "release/3.8", "v3.9",
+	}
+
+	for _, tc := range []struct {
+		name   string
+		tags   []string
+		target string
+		want   string
+		ok     bool
+	}{
+		{"first RC", tags, "v3.9.0-rc.1", "v3.8.1", true},
+		{"later RC skips the RCs before it", tags, "v3.9.0-rc.2", "v3.8.1", true},
+		{"final", tags, "v3.9.0", "v3.8.1", true},
+		{"patch", tags, "v3.8.1", "v3.8.0", true},
+		{"RC of an earlier cycle", tags, "v3.8.0-rc.2", "v3.7.1", true},
+		{"final of an earlier cycle", tags, "v3.8.0", "v3.7.1", true},
+		{"target not among the tags", tags, "v4.0.0-rc.1", "v3.8.1", true},
+		{"without the v", []string{"3.7.0", "3.8.0-rc.1"}, "3.8.0-rc.2", "3.7.0", true},
+		{"only pre-releases before it", []string{"v1.0.0-rc.1", "v1.0.0-rc.2"}, "v1.0.0-rc.3", "", false},
+		{"the first release", tags, "v3.7.0", "", false},
+		{"non-semver tags only", []string{"latest", "release/1.0"}, "v1.0.0", "", false},
+		{"non-semver target", tags, "release/3.8", "", false},
+		{"no tags", nil, "v1.0.0", "", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, ok := semver.PreviousFinal(tc.tags, tc.target)
+			if got != tc.want || ok != tc.ok {
+				t.Errorf("PreviousFinal(%s) = %q, %v, want %q, %v", tc.target, got, ok, tc.want, tc.ok)
+			}
+		})
+	}
+}

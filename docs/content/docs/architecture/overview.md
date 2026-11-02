@@ -22,7 +22,7 @@ gh-release-changes/
     ├── github/                   # go-gh clients: tag check, generate-notes, tags, issue details
     ├── changes/                  # Item/Release, Parse(), grouping and sorting, dump's Details — pure
     ├── render/                   # sort Markdown, issue list, dump Markdown — pure
-    ├── semver/                   # tag ordering for the picker — pure
+    ├── semver/                   # tag ordering for the picker, the previous final release — pure
     └── util/
         ├── exit/                 # exit codes, exit.Err, exit.Of
         └── output/               # Writer for stderr diagnostics, slog setup, TTY detection
@@ -37,7 +37,7 @@ gh-release-changes/
 | `internal/changes`        | Built — see [Parser]({{< ref "./parser.md" >}})                                                 |
 | `internal/github`         | Notes, tags, issue details — see [GitHub Client]({{< ref "./github.md" >}})                     |
 | `internal/render`         | `Sort`, `Issues`, `Dump` — see [Commands](#commands)                                            |
-| `internal/semver`         | `Sort` — see [The tag](#the-tag)                                                                |
+| `internal/semver`         | `Sort`, `PreviousFinal` — see [The tag](#the-tag) and [The base](#the-base)                     |
 
 ### Why `changes`, `render` and `semver` are isolated
 
@@ -79,27 +79,45 @@ and 10 visible tags, drawn on stderr because stdout is the product. `App.PickTag
 labelsync: a test that supplies a picker also declares the run interactive, since a terminal cannot be faked
 portably.
 
+## The base
+
+`App.previousTag` in `internal/cmd/release.go` decides what the notes are generated against, for every command
+that generates them: `--previous-tag` as given, or `""` to let GitHub choose. With `--since-final` it lists the
+repository's tags through the `TagSource` and takes `semver.PreviousFinal(tags, tag)`: the newest semantic
+version without pre-release identifiers whose precedence is below the tag's, skipping every tag that is not a
+semantic version. Without one — the first release, or a non-semver tag — GitHub chooses after all and an info
+line on stderr says so; a failure to list the tags fails the run. Cobra rejects `--previous-tag` together with
+`--since-final` (`MarkFlagsMutuallyExclusive`) before any command runs.
+
 ## Commands
 
 Every rendering command starts with the same step, `App.loadRelease` in `internal/cmd/release.go`: create the
-`NotesSource`, generate the notes, `changes.Parse` the body, and assemble a `changes.Release` with the resolved
-repository and the previous tag. Unclassified items are warned about there, once, on stderr. A command then only
-turns the `Release` into its product on stdout:
+`NotesSource`, generate the notes against `App.previousTag`, `changes.Parse` the body, and assemble a
+`changes.Release` with the resolved repository and the previous tag. Unclassified items are warned about there,
+once, on stderr. A command then only turns the `Release` into its product on stdout:
 
-| Command  | File        | Product                                                                                            |
-|----------|-------------|----------------------------------------------------------------------------------------------------|
-| `items`  | `items.go`  | `changes.Release` marshalled as indented JSON                                                      |
-| `sort`   | `sort.go`   | `render.Sort`: the grouped "What's Changed" Markdown                                               |
-| `issues` | `issues.go` | `render.Issues`, with the reference form from `--scope-issue-repo`, `--relative-to`, `--full-refs` |
-| `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched               |
+| Command  | File        | Product                                                                              |
+|----------|-------------|--------------------------------------------------------------------------------------|
+| `items`  | `items.go`  | `changes.Release` marshalled as indented JSON                                        |
+| `sort`   | `sort.go`   | `render.Sort`: the grouped "What's Changed" Markdown                                 |
+| `issues` | `issues.go` | `render.Issues`, with the `render.IssueRefs` and `render.IssueList` its flags choose |
+| `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched |
 
 `dump` makes a second request after the notes: it asks the `DetailsSource` for every issue the items reference
-(`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). An issue's linked
-pull requests are only known once it is read, so the release's pull requests an issue does not link
-(`changes.UnlinkedPullRequests`) are asked for in a third request, made only when there are any, and merged in
-(`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after
+(`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). `Untracked`
+is defined on `changes.Issueless` — no issue, no dependency update — which is what `issues --unlinked` lists,
+so the two commands cannot drift apart on what "without an issue" means; `dump` narrows it to features and
+fixes. An issue's linked pull requests are only known once it is read, so the release's pull requests an issue
+does not link (`changes.UnlinkedPullRequests`) are asked for in a third request, made only when there are any,
+and merged in (`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after
 the product is written; the command then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`.
 A failure of either details request as a whole fails the run before anything is printed.
+
+`issues --titles` makes one more request after the notes, and only when an issue is referenced: it asks the
+`TitleSource` for the titles of `changes.ReferencedIssues` in the `--scope-issue-repo` repository, and hands them
+to `render.Issues` as a plain `map[int]string`. A title that could not be read is left out of the map, so its
+issue keeps its bare reference; it is warned about after the product is written and the run exits `4`, as for
+`dump`.
 
 ### Renamed flags
 

@@ -1,0 +1,40 @@
+## Issues
+
+### Bug fixes
+
+* example-org/web-components#1510
+* example-org/web-components#1514
+
+### Other
+
+* example-org/web-components#437
+
+### Pull requests without an issue
+
+* example-org/web-components#1439 ci: update github actions and enable npm provenance
+* example-org/web-components#1440 ci: add NODE_AUTH_TOKEN and mark internal packages as private
+* example-org/web-components#1459 fix: Removed unnecessary whitespace within sidemenu. (Theme: classic)
+* example-org/web-components#1467 fix: improved accessibility on table headers with a select all checkbox
+* example-org/web-components#1468 fix: improved a11y on expando row
+* example-org/web-components#1469 fix: Improved a11y on language selector
+* example-org/web-components#1487 fix: update and audit dependencies
+* example-org/web-components#1496 fix: Enhances relation between button and expanded details row for expando rows
+* example-org/web-components#1497 fix: set overrides to fix audit
+* example-org/web-components#1498 ci: fixes Sonarqube 0.0% Coverage on New Code 
+* example-org/web-components#1503 chore: update visual regression source images
+* example-org/web-components#1504 fix: Improve accessibility of table checkboxes by linking labels and checkboxes and updated cursor type of label
+* example-org/web-components#1505 fix: Improved language selector accessibility and added tests
+* example-org/web-components#1512 fix: Replaced non-working backticks with <code> and fixes copy button copying an empty string
+* example-org/web-components#1519 chore(pnpm): updates to support trusted publishing
+* example-org/web-components#1520 chore: change codeowners of repo
+* example-org/web-components#1537 fix(e2e): unblock the e2e docs build on pnpm 11
+* example-org/web-components#1538 fix(sidemenu): guard nav gap against null
+* example-org/web-components#1543 feat: add a project metadata file
+* example-org/web-components#1545 fix(core): skip type checking of dependency declaration files
+* example-org/web-components#1546 chore: add a browser support policy
+* example-org/web-components#1547 docs: add changelog based on Keep a Changelog
+* example-org/web-components#1548 fix: form control fonts, fieldset spacing and skip link overlay
+* example-org/web-components#1561 docs: update changelog for unreleased changes
+* example-org/web-components#1563 fix: removes duplicated
+* example-org/web-components#1564 chore: ignore braces audit advisory until a patched version exists
+* example-org/web-components#1565 Release v19.0.0

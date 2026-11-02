@@ -1,0 +1,9 @@
+## Issues
+
+No issues.
+
+### Pull requests without an issue
+
+* #1569 fix(sidemenu): remove extra space below items with a nested list
+* #1577 ci: only gate PRs on audit shipped dependencies
+* #1580 chore: update changelog for v19.0.1

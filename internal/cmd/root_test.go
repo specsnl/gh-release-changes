@@ -70,11 +70,23 @@ func TestRoot_FlagDefaults(t *testing.T) {
 	}{
 		{"--repo", app.Repo, ""},
 		{"--previous-tag", app.PreviousTag, ""},
+		{"--since-final", app.SinceFinal, false},
 		{"--debug", app.Debug, false},
 	} {
 		if tc.got != tc.want {
 			t.Errorf("%s = %v, want %v", tc.name, tc.got, tc.want)
 		}
+	}
+}
+
+func TestRoot_SinceFinalFlag(t *testing.T) {
+	app, _, _, err := run(t, []*cobra.Command{noopCmd()}, "--since-final", "noop")
+	if err != nil {
+		t.Fatalf("noop: %v", err)
+	}
+
+	if !app.SinceFinal {
+		t.Error("--since-final = false, want true")
 	}
 }
 

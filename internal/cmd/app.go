@@ -45,6 +45,15 @@ type DetailsSource interface {
 	Details(ctx context.Context, issueRepo string, issues, pullRequests []int) (changes.Details, error)
 }
 
+// TitleSource fetches the issue titles issues --titles writes.
+// *github.Client is the implementation; a test substitutes a fake.
+type TitleSource interface {
+	// IssueTitles reads the titles of issues from issueRepo (OWNER/REPO). What
+	// cannot be read is reported in the result's Unreadable map, not as an
+	// error.
+	IssueTitles(ctx context.Context, issueRepo string, issues []int) (changes.IssueTitles, error)
+}
+
 // TagSource lists the tags of the source repository, for the tag picker.
 // *github.Client is the implementation; a test substitutes a fake.
 type TagSource interface {
@@ -91,6 +100,10 @@ type App struct {
 	// GitHub choose it.
 	PreviousTag string
 
+	// SinceFinal is --since-final: compare with the newest final release older
+	// than the tag instead. It excludes --previous-tag.
+	SinceFinal bool
+
 	// Debug is --debug: raises the slog level to Debug on stderr.
 	Debug bool
 
@@ -101,6 +114,10 @@ type App struct {
 	// NewDetailsSource creates the DetailsSource for a repository reference in
 	// the form of Repo; a test replaces it.
 	NewDetailsSource func(repo string) (DetailsSource, error)
+
+	// NewTitleSource creates the TitleSource for a repository reference in the
+	// form of Repo; a test replaces it.
+	NewTitleSource func(repo string) (TitleSource, error)
 
 	// NewTagSource creates the TagSource for a repository reference in the form
 	// of Repo; a test replaces it.
@@ -129,6 +146,9 @@ func NewApp() *App {
 			return github.New(repo)
 		},
 		NewDetailsSource: func(repo string) (DetailsSource, error) {
+			return github.New(repo)
+		},
+		NewTitleSource: func(repo string) (TitleSource, error) {
 			return github.New(repo)
 		},
 		NewTagSource: func(repo string) (TagSource, error) {

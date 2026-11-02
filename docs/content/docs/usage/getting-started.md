@@ -43,4 +43,5 @@ gh release-changes items v1.2.0 | jq .    # the JSON every other output is rende
 
 Run it inside a clone of the repository, or pass `-R owner/repo`. Leave out the tag in a terminal to pick one
 from the repository's tags — see [Commands]({{< ref "./commands.md#the-tag" >}}). The base of the comparison is
-GitHub's choice — see [Commands]({{< ref "./commands.md#the-range" >}}).
+GitHub's choice — see [Commands]({{< ref "./commands.md#the-range" >}}); `--since-final` compares a release
+candidate with the previous final release instead, so it covers the whole release cycle.

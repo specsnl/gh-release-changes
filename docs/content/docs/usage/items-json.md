@@ -47,12 +47,12 @@ Items are listed in display order: by group as above, then by first issue number
 without an issue last; dependencies by PR number. `scopes` and `issues` are always arrays, never `null`. An
 unclassified item has an empty `type`, empty `scopes` and `issues`, and `breaking: false`.
 
-| Field          | Meaning                                                                                    |
-|----------------|--------------------------------------------------------------------------------------------|
-| `repo`         | The source repository as `OWNER/REPO`: `-R`, or the repository of the current directory    |
-| `tag`          | The tag the notes were generated for                                                       |
-| `previous_tag` | The base of the comparison: `--previous-tag`, or GitHub's choice; `""` for a first release |
-| `items`        | The pull requests, in display order; `[]` when there are none                              |
+| Field          | Meaning                                                                                                                                     |
+|----------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| `repo`         | The source repository as `OWNER/REPO`: `-R`, or the repository of the current directory                                                     |
+| `tag`          | The tag the notes were generated for                                                                                                        |
+| `previous_tag` | The base of the comparison: `--previous-tag`, the previous final release with `--since-final`, or GitHub's choice; `""` for a first release |
+| `items`        | The pull requests, in display order; `[]` when there are none                                                                               |
 
 Unclassified items are listed and reported with a warning on stderr naming their PRs; the run still exits `0`.
 
