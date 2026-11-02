@@ -21,7 +21,7 @@ func newSortCmd(app *App) *cobra.Command {
 				return err
 			}
 
-			release, err := app.loadRelease(cmd.Context(), tag)
+			release, err := app.loadRelease(cmd.Context(), tag, "")
 			if err != nil {
 				return err
 			}

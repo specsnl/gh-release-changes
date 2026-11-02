@@ -7,6 +7,7 @@ weight: 2
 gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the current directory
                    [--previous-tag <tag>]      default: GitHub's choice
                    [--since-final]             compare with the previous final release
+                   [--link closing]            also the issues a pull request closes
                    [--debug]                   slog diagnostics on stderr
 │
 ├── items [<tag>]                              JSON contract
@@ -33,6 +34,7 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 | `-R`, `--repo`         | the current directory's remote | The source repository, as `OWNER/REPO` or `HOST/OWNER/REPO` |
 | `--previous-tag <tag>` | GitHub's choice                | Compare with this tag instead                               |
 | `--since-final`        | off                            | Compare with the newest final release older than the tag    |
+| `--link closing`       | off                            | Also take the issues a pull request closes on GitHub        |
 | `--debug`              | off                            | Write `slog` debug diagnostics to stderr                    |
 
 A malformed `-R` fails before anything is fetched, with exit code `1` and an error along the lines of:
@@ -101,6 +103,34 @@ So every candidate of a release lists the same range its final will. The tags ar
 ordered by semantic version; tags that are not a semantic version are ignored. When there is no older final
 release — the first release, or a tag that is no semantic version — the base is GitHub's choice after all, and
 an `info:` line on stderr says so. `--since-final` excludes `--previous-tag`, and works for every command.
+
+## Closing references
+
+The issues of a pull request are the digit scopes of its title: `fix(12,13): …` references `#12` and `#13`.
+A pull request can close more than its title says, though — `fix(12): …` with `Closes #12, closes #13` in its
+description — and a `docs:` or `chore:` pull request often has no scope at all. `--link closing` also takes the
+issues a pull request closes on GitHub: the ones a closing keyword (`Closes #13`, `Fixes #13`) or a link in the
+pull request's Development sidebar connects to it.
+
+```shell
+gh release-changes --link closing issues v3.8.0
+```
+
+- They are added after the title's issues, so a pull request still sorts by its first digit scope, and they
+  reach every command: `items`, `sort` (the order), `issues`, `dump` and `check-notes`.
+- Only issues in the repository the digit scopes point at count: `--scope-issue-repo` for the commands that
+  have it, the source repository for the others. A number means nothing in another repository, so a reference
+  there is left out (`--debug` logs it).
+- `items` says where each issue came from in [`issue_sources`]({{< ref "./items-json.md#issue_sources" >}}).
+- The group never changes: a `docs:` pull request that closes an issue lists it under Other, and an
+  unclassified one under Unclassified. A pull request that closes an issue is no longer one
+  [without an issue]({{< ref "#pull-requests-without-an-issue" >}}).
+- It costs one GraphQL request per 100 pull requests. A pull request of the release that cannot be read fails
+  the run.
+- `closing` is the only source. Branch names (`8285-update-changelog`) are not read: on the releases this was
+  measured on they added no issue, and gave false hits.
+
+Without `--link` every output is exactly as before.
 
 ## Access
 
@@ -179,7 +209,8 @@ Prints a plain issue list per group as Markdown on stdout, for the release ticke
 * #13
 ```
 
-The issues are the digit scopes of the titles: `fix(12,13): …` references `#12` and `#13`. Per group they are
+The issues are the digit scopes of the titles: `fix(12,13): …` references `#12` and `#13`; with
+[`--link closing`]({{< ref "#closing-references" >}}) also the issues the pull requests close. Per group they are
 listed ascending and deduplicated; groups without issues are left out, and a release without any prints
 `No issues.`
 
@@ -271,12 +302,12 @@ gh release-changes [-R OWNER/REPO] [--previous-tag <tag> | --since-final] dump [
 Prints everything needed to write release notes or a changelog for the release as one Markdown document on
 stdout:
 
-- **Every referenced issue** — the digit scopes of the titles, read from `--scope-issue-repo` (default: the
-  source repository): title, state, labels, URL, description, comments, and the pull requests that close it
-  (GitHub's `closedByPullRequestsReferences`, merged or not, each marked `In this release: yes` or `no`), with
-  the release's own pull requests for it. A release pull request whose title references the issue while GitHub
-  does not link it — "Related to #12" is no closing keyword — is described under **Unlinked pull requests in
-  this release**, with its description.
+- **Every referenced issue** — the digit scopes of the titles (and with `--link closing` the issues the pull requests
+  close), read from `--scope-issue-repo` (default: the source repository): title, state, labels, URL, description,
+  comments, and the pull requests that close it (GitHub's `closedByPullRequestsReferences`, merged or not, each marked
+  `In this release: yes` or `no`), with the release's own pull requests for it. A release pull request whose title
+  references the issue while GitHub does not link it — "Related to #12" is no closing keyword — is described under
+  **Unlinked pull requests in this release**, with its description.
 - **Every feature or fix without an issue** — `feat` and `fix` titles without a digit scope: title, author, URL,
   and the pull request's description. A `fix(deps)` is a dependency update, not a fix, and is left out.
 - **Breaking changes** are marked: `* **Breaking change**` on the issue or pull request, and `**Breaking:**` on
@@ -394,7 +425,8 @@ and exit `0`; a section is left out when it is empty, and any difference exits `
 question, not a failure: branch on it with `(( code & 2 ))`.
 
 - **The issues of the release** are the digit scopes of the titles, as for `issues`, in the
-  `--scope-issue-repo` repository (default: the source repository).
+  `--scope-issue-repo` repository (default: the source repository). With `--link closing` the issues the pull
+  requests close are in the release too.
 - **The references in the notes** are `#N`, `OWNER/REPO#N`, and issue and pull request URLs
   (`https://HOST/OWNER/REPO/issues/N`, `…/pull/N`). A bare `#N` is in the `--relative-to` repository (default:
   the source repository): set it to where the notes are published when that is not the source repository.

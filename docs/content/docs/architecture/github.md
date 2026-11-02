@@ -7,12 +7,13 @@ weight: 5
 [go-gh](https://github.com/cli/go-gh) end to end, so authentication, `GH_TOKEN`, `GH_HOST` and GitHub Enterprise
 hosts are resolved the way `gh` resolves them, and the tool never sees a token.
 
-| File        | Holds                                                                                |
-|-------------|--------------------------------------------------------------------------------------|
-| `client.go` | `Client`: repository resolution, the go-gh REST and GraphQL clients, error mapping   |
-| `notes.go`  | `GenerateNotes`: the tag check, `generate-notes`, the previous tag from the response |
-| `tags.go`   | `Tags`: every tag of the repository, for the tag picker, through GraphQL             |
-| `issues.go` | `Details`: issues and pull requests for `dump`; `IssueTitles` for `issues --titles`  |
+| File         | Holds                                                                                |
+|--------------|--------------------------------------------------------------------------------------|
+| `client.go`  | `Client`: repository resolution, the go-gh REST and GraphQL clients, error mapping   |
+| `notes.go`   | `GenerateNotes`: the tag check, `generate-notes`, the previous tag from the response |
+| `tags.go`    | `Tags`: every tag of the repository, for the tag picker, through GraphQL             |
+| `issues.go`  | `Details`: issues and pull requests for `dump`; `IssueTitles` for `issues --titles`  |
+| `closing.go` | `ClosingIssues`: the issues each pull request closes, for `--link closing`           |
 
 ## The repository
 
@@ -83,6 +84,30 @@ labels, comments or pull requests, and the `pullRequest` fragment is left out wi
 numbers and errors work as for `Details`; the result is a `changes.IssueTitles` — the titles by number, and an
 `Unreadable` map with GitHub's message.
 
+## Closing references
+
+`ClosingIssues(ctx, issueRepo, pullRequests)` reads, for `--link closing`, the issues each pull request of the
+release closes on GitHub: its `closingIssuesReferences`, set by a closing keyword (`Closes #12`) or a link in
+the Development sidebar. One query asks for 100 pull requests, each through an alias, so a release is usually
+one round trip:
+
+```graphql
+query($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    p40: pullRequest(number: 40) { ...closing }
+  }
+}
+fragment closing on PullRequest {
+  closingIssuesReferences(first: 25) { totalCount nodes { number repository { nameWithOwner } } }
+}
+```
+
+The result is a plain `map[int][]int`, pull request to issue numbers, which `changes.LinkClosing` merges into
+the items. A number only means something in one repository, so only references into `issueRepo` are kept,
+compared without regard to case; the rest, and references beyond the first 25, are left out and logged with
+`--debug`. The pull requests come from the release's own notes, so one that cannot be read fails the call with
+GitHub's reason, rather than leaving its issues out unnoticed.
+
 ## Error mapping
 
 | Response                                  | Error                                      |
@@ -101,8 +126,9 @@ Sentinels are wrapped with `%w` and the tag or repository they are about; the ra
 Commands do not use `*github.Client` directly. `cmd.App` holds a `NewNotesSource` factory returning the
 `NotesSource` interface — `GenerateNotes`, and `Repo` for the resolved `OWNER/REPO` — and a `NewDetailsSource`
 factory returning the `DetailsSource` interface (`Details`), a `NewTitleSource` factory returning the
-`TitleSource` interface (`IssueTitles`), and a `NewTagSource` factory returning the `TagSource` interface
-(`Tags`), so a command test swaps in fakes and runs without HTTP. The client itself is
+`TitleSource` interface (`IssueTitles`), a `NewTagSource` factory returning the `TagSource` interface
+(`Tags`), and a `NewClosingSource` factory returning the `ClosingSource` interface (`ClosingIssues`), so a
+command test swaps in fakes and runs without HTTP. The client itself is
 tested against a `net/http/httptest` server: `NewWithOptions` takes go-gh `ClientOptions`, and a test passes a
 token and a `Transport` that redirects every request to the server. The GraphQL fakes answer from the query the
 way GitHub does — the details fake from its aliases, failing a test on an unused variable or fragment, and the

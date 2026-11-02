@@ -39,7 +39,7 @@ func newCheckNotesCmd(app *App) *cobra.Command {
 				return err
 			}
 
-			release, err := app.loadRelease(cmd.Context(), tag)
+			release, err := app.loadRelease(cmd.Context(), tag, scopeIssueRepo)
 			if err != nil {
 				return err
 			}

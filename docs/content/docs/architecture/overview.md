@@ -94,7 +94,10 @@ line on stderr says so; a failure to list the tags fails the run. Cobra rejects 
 Every rendering command starts with the same step, `App.loadRelease` in `internal/cmd/release.go`: create the
 `NotesSource`, generate the notes against `App.previousTag`, `changes.Parse` the body, and assemble a
 `changes.Release` with the resolved repository and the previous tag. Unclassified items are warned about there,
-once, on stderr. A command then only turns the `Release` into its product on stdout:
+once, on stderr. With `--link closing` it then asks the `ClosingSource` which issues the release's pull requests
+close, in the issue repository the command passes (its `--scope-issue-repo`, or the source repository), and
+merges them in with `changes.LinkClosing`; a failure there fails the run. A command then only turns the
+`Release` into its product on stdout:
 
 | Command       | File            | Product                                                                              |
 |---------------|-----------------|--------------------------------------------------------------------------------------|

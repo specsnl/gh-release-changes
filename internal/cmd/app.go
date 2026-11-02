@@ -54,6 +54,15 @@ type TitleSource interface {
 	IssueTitles(ctx context.Context, issueRepo string, issues []int) (changes.IssueTitles, error)
 }
 
+// ClosingSource fetches the issues the release's pull requests close on
+// GitHub, for --link closing. *github.Client is the implementation; a test
+// substitutes a fake.
+type ClosingSource interface {
+	// ClosingIssues returns, per pull request of the source repository, the
+	// issues of issueRepo (OWNER/REPO) it closes; one closing none is absent.
+	ClosingIssues(ctx context.Context, issueRepo string, pullRequests []int) (map[int][]int, error)
+}
+
 // TagSource lists the tags of the source repository, for the tag picker.
 // *github.Client is the implementation; a test substitutes a fake.
 type TagSource interface {
@@ -104,6 +113,10 @@ type App struct {
 	// than the tag instead. It excludes --previous-tag.
 	SinceFinal bool
 
+	// Link is --link: the sources issues are linked from beyond the digit
+	// scopes of the titles. "closing" is the only one.
+	Link []string
+
 	// Debug is --debug: raises the slog level to Debug on stderr.
 	Debug bool
 
@@ -122,6 +135,10 @@ type App struct {
 	// NewTagSource creates the TagSource for a repository reference in the form
 	// of Repo; a test replaces it.
 	NewTagSource func(repo string) (TagSource, error)
+
+	// NewClosingSource creates the ClosingSource for a repository reference in
+	// the form of Repo; a test replaces it.
+	NewClosingSource func(repo string) (ClosingSource, error)
 
 	// PickTag is the tag picker. Nil means the real huh Select, which is only
 	// shown on a terminal.
@@ -152,6 +169,9 @@ func NewApp() *App {
 			return github.New(repo)
 		},
 		NewTagSource: func(repo string) (TagSource, error) {
+			return github.New(repo)
+		},
+		NewClosingSource: func(repo string) (ClosingSource, error) {
 			return github.New(repo)
 		},
 	}

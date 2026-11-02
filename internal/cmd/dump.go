@@ -39,7 +39,7 @@ func newDumpCmd(app *App) *cobra.Command {
 				return err
 			}
 
-			release, err := app.loadRelease(cmd.Context(), tag)
+			release, err := app.loadRelease(cmd.Context(), tag, issueRepo)
 			if err != nil {
 				return err
 			}

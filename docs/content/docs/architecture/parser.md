@@ -12,6 +12,7 @@ files without HTTP.
 | `item.go`  | `Item`, `Release` (the [items JSON]({{< ref "../usage/items-json.md" >}})), `Group`, `Section`       |
 | `parse.go` | `Parse(body) []Item`: line format, title format, classification                                      |
 | `sort.go`  | `Sort(items)`, `Sections(items)` and `Section.Issues()`: display order, issue deduplication          |
+| `link.go`  | `LinkClosing(items, closing)`: the issues the pull requests close, for `--link closing`              |
 | `notes.go` | `NoteRefs(text, relativeTo)` and `CheckNotes(release, issueRepo, refs)`: what `check-notes` compares |
 
 ## Lines
@@ -41,6 +42,20 @@ Strict, matching the `amannn/action-semantic-pull-request` check the target repo
   fallback.
 - A title outside the format — GitHub's `Revert "…"`, a free-form title, an unknown or capitalised type — is
   **Unclassified**, and nothing is taken from it: empty `type`, `scopes` and `issues`, `breaking: false`.
+
+## Closing references
+
+With `--link closing`, `LinkClosing(items, closing)` runs after parsing. `closing` is a plain `map[int][]int`
+— pull request to the issues it closes — that the command fetched through `internal/github`; this package
+never imports it.
+
+- The closing issues are added to `issues` after the title's, ascending, without repeating one the title
+  already has. The title's order is kept, so an item still sorts by its first digit scope.
+- Every item gets `issue_sources`: `title` (the digit scopes, in title order) and `closing` (ascending), both
+  never `null`. Without `--link` the field stays `nil` and is left out of the JSON.
+- The group never changes. An unclassified item can get issues this way: nothing is taken from its title, but
+  a closing reference is not the title.
+- The items are sorted again, since an item without an issue may now have one.
 
 ## Groups
 

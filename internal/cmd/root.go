@@ -18,6 +18,7 @@ const (
 	flagRepo        = "repo"
 	flagPreviousTag = "previous-tag"
 	flagSinceFinal  = "since-final"
+	flagLink        = "link"
 	flagDebug       = "debug"
 )
 
@@ -64,6 +65,7 @@ of release notes against the release.`,
 	flags.StringP(flagRepo, "R", "", "Select another repository using the [HOST/]OWNER/REPO format")
 	flags.String(flagPreviousTag, "", "Compare with this tag instead of the one GitHub picks")
 	flags.Bool(flagSinceFinal, false, "Compare with the newest final release older than the tag, covering the whole release cycle")
+	flags.Var(&linkSources{}, flagLink, "Also link issues from these sources: closing (the issues a pull request closes on GitHub)")
 	flags.Bool(flagDebug, false, "Write debug diagnostics to stderr")
 	cmd.MarkFlagsMutuallyExclusive(flagPreviousTag, flagSinceFinal)
 
@@ -97,6 +99,10 @@ func (a *App) resolveFlags(cmd *cobra.Command) error {
 	a.SinceFinal, _ = flags.GetBool(flagSinceFinal)
 	a.Debug, _ = flags.GetBool(flagDebug)
 
+	if link, ok := flags.Lookup(flagLink).Value.(*linkSources); ok {
+		a.Link = link.list()
+	}
+
 	a.Stdout = cmd.OutOrStdout()
 	a.Stdin = cmd.InOrStdin()
 	a.Stderr = cmd.ErrOrStderr()
@@ -109,7 +115,7 @@ func (a *App) resolveFlags(cmd *cobra.Command) error {
 		return fmt.Errorf("%w: -R %q", releasechanges.ErrInvalidRepoRef, a.Repo)
 	}
 
-	slog.Debug("flags resolved", "repo", a.Repo, "previous_tag", a.PreviousTag, "since_final", a.SinceFinal)
+	slog.Debug("flags resolved", "repo", a.Repo, "previous_tag", a.PreviousTag, "since_final", a.SinceFinal, "link", a.Link)
 
 	return nil
 }
