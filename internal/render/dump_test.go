@@ -43,14 +43,14 @@ func dumpFixture(t *testing.T) (changes.Release, changes.Details) {
 func TestDump_Golden(t *testing.T) {
 	release, details := dumpFixture(t)
 
-	got := render.Dump(release, details, render.IssueRefs{IssueRepo: release.Repo, TicketRepo: release.Repo})
+	got := render.Dump(release, details, render.IssueRefs{IssueRepo: release.Repo, RelativeTo: release.Repo})
 
 	assertGolden(t, "dump/release.golden", got)
 }
 
 func TestDump_IsDeterministic(t *testing.T) {
 	release, details := dumpFixture(t)
-	refs := render.IssueRefs{IssueRepo: release.Repo, TicketRepo: release.Repo}
+	refs := render.IssueRefs{IssueRepo: release.Repo, RelativeTo: release.Repo}
 
 	if first, second := render.Dump(release, details, refs), render.Dump(release, details, refs); first != second {
 		t.Error("the same release rendered two different dumps")
@@ -62,7 +62,7 @@ func TestDump_IsDeterministic(t *testing.T) {
 func TestDump_OtherIssueRepo(t *testing.T) {
 	release, details := dumpFixture(t)
 
-	got := render.Dump(release, details, render.IssueRefs{IssueRepo: "example-org/tracker", TicketRepo: release.Repo})
+	got := render.Dump(release, details, render.IssueRefs{IssueRepo: "example-org/tracker", RelativeTo: release.Repo})
 
 	for _, want := range []string{
 		"* Issues from: example-org/tracker\n",
@@ -146,7 +146,7 @@ func TestDump(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			refs := render.IssueRefs{IssueRepo: tc.release.Repo, TicketRepo: tc.release.Repo}
+			refs := render.IssueRefs{IssueRepo: tc.release.Repo, RelativeTo: tc.release.Repo}
 
 			if got := render.Dump(tc.release, tc.details, refs); got != tc.want {
 				t.Errorf("got\n%s\nwant\n%s", got, tc.want)

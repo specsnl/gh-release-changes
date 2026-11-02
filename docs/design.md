@@ -93,11 +93,13 @@ All four come from one source.
   | `write-changelog`      | `/write-changelog`      | `/github-releases:write-changelog`      | Dutch changelog                       |
   | `sort-release-changes` | `/sort-release-changes` | `/github-releases:sort-release-changes` | Grouped "What's Changed" + issue list |
 
-- **Issue list format:** plain list per group. Digit scopes point at issues in the issue repo (`--issue-repo`,
-  default: the source repo). A reference is short (`#N`) when the issue repo equals the ticket repo
-  (`--ticket-repo`, default: the source repo) and full (`owner/repo#N`) otherwise; `--full-refs` forces the full
-  form everywhere. Both flags take `OWNER/REPO` without a host — an issue reference has none — and the
-  comparison ignores case, as GitHub does. The list has an `## Issues` heading and a `###` heading per group,
+- **Issue list format:** plain list per group. Digit scopes point at issues in the scope issue repo
+  (`--scope-issue-repo`, default: the source repo). A reference is short (`#N`) when the scope issue repo equals
+  the repo references are written relative to (`--relative-to`, default: the source repo) and full
+  (`owner/repo#N`) otherwise; `--full-refs` forces the full form everywhere. Both flags take `OWNER/REPO` without
+  a host — an issue reference has none — and the comparison ignores case, as GitHub does. They were
+  `--issue-repo` and `--ticket-repo` up to v0.2, names that read as near-synonyms; the old names are deprecated
+  aliases until #44. The list has an `## Issues` heading and a `###` heading per group,
   mirroring `sort`, with one `* <ref>` line per issue.
 - **Range:** any tag (RC, patch or final) as target. The base is GitHub's choice, which already fits the
   release flow (verified on `minvws/nl-rdo-woo-web-private`): a final is compared with the previous final, so it
@@ -135,11 +137,11 @@ gh release-changes [-R owner/repo]              default: the repository of the c
 ├── items [<tag>]                               JSON contract, see below
 ├── sort [<tag>]                                grouped "What's Changed" Markdown
 ├── issues [<tag>]                              plain issue list per group
-│     [--issue-repo owner/repo]                 default: the source repo
-│     [--ticket-repo owner/repo]                default: the source repo
+│     [--scope-issue-repo owner/repo]           default: the source repo
+│     [--relative-to owner/repo]                default: the source repo
 │     [--full-refs]
 ├── dump [<tag>]                                issue details for the writing skills
-│     [--issue-repo owner/repo]
+│     [--scope-issue-repo owner/repo]
 ├── ticket [<tag>]                              (later) create/update the release issue
 └── version
 ```

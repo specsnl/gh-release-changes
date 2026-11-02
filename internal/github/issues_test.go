@@ -211,7 +211,7 @@ func TestDetails(t *testing.T) {
 	}
 }
 
-// Issues come from --issue-repo, pull requests from the source repository.
+// Issues come from --scope-issue-repo, pull requests from the source repository.
 func TestDetails_OtherIssueRepo(t *testing.T) {
 	fake := &fakeGraphQL{t: t, issues: map[int]string{12: issue12}}
 

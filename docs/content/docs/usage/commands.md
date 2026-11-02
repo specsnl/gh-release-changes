@@ -11,11 +11,11 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 ├── items [<tag>]                              JSON contract
 ├── sort [<tag>]                               grouped "What's Changed" Markdown
 ├── issues [<tag>]                             plain issue list per group
-│     [--issue-repo owner/repo]                default: the source repo
-│     [--ticket-repo owner/repo]               default: the source repo
+│     [--scope-issue-repo owner/repo]          default: the source repo
+│     [--relative-to owner/repo]               default: the source repo
 │     [--full-refs]
 ├── dump [<tag>]                               issue details for the writing skills
-│     [--issue-repo owner/repo]
+│     [--scope-issue-repo owner/repo]
 └── version
 ```
 
@@ -120,7 +120,7 @@ skill prints it unchanged.
 
 ```shell
 gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] issues [<tag>]
-                   [--issue-repo OWNER/REPO] [--ticket-repo OWNER/REPO] [--full-refs]
+                   [--scope-issue-repo OWNER/REPO] [--relative-to OWNER/REPO] [--full-refs]
 ```
 
 Prints a plain issue list per group as Markdown on stdout, for the release ticket (PO, QA, acceptance):
@@ -142,16 +142,21 @@ The issues are the digit scopes of the titles: `fix(12,13): …` references `#12
 listed ascending and deduplicated; groups without issues are left out, and a release without any prints
 `No issues.`
 
-| Flag                       | Default               | Meaning                                  |
-|----------------------------|-----------------------|------------------------------------------|
-| `--issue-repo OWNER/REPO`  | the source repository | The repository the digit scopes point at |
-| `--ticket-repo OWNER/REPO` | the source repository | The repository the list is pasted into   |
-| `--full-refs`              | off                   | Write every reference as `OWNER/REPO#N`  |
+| Flag                            | Default               | Meaning                                                                            |
+|---------------------------------|-----------------------|------------------------------------------------------------------------------------|
+| `--scope-issue-repo OWNER/REPO` | the source repository | The repository the digit scopes of the titles point at                             |
+| `--relative-to OWNER/REPO`      | the source repository | The repository references are written relative to: the one the list is pasted into |
+| `--full-refs`                   | off                   | Write every reference as `OWNER/REPO#N`                                            |
 
-A reference is short (`#N`) when the issue repository equals the ticket repository, compared without regard to
-case, and full (`OWNER/REPO#N`) otherwise, so it links to the right issue wherever the list is pasted. Both
-flags take `OWNER/REPO` without a host; anything else fails before anything is fetched, with exit code `1` and
-the kind `invalid_repo_ref`.
+A reference is short (`#N`) when the `--scope-issue-repo` repository equals the `--relative-to` repository,
+compared without regard to case, and full (`OWNER/REPO#N`) otherwise, so it links to the right issue wherever
+the list is pasted. Both flags take `OWNER/REPO` without a host; anything else fails before anything is fetched,
+with exit code `1` and the kind `invalid_repo_ref`.
+
+**Renamed flags.** `--scope-issue-repo` and `--relative-to` were called `--issue-repo` and `--ticket-repo` up
+to v0.2. The old names are hidden from the help but still work, with a warning on stderr; they will be removed
+in a later release ([#44](https://github.com/specsnl/gh-release-changes/issues/44)). Giving a flag under both
+names is an error.
 
 ## `notes` (hidden)
 
@@ -166,14 +171,14 @@ contract and may change or go away.
 ## `dump`
 
 ```shell
-gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] dump [<tag>] [--issue-repo OWNER/REPO]
+gh release-changes [-R OWNER/REPO] [--previous-tag <tag>] dump [<tag>] [--scope-issue-repo OWNER/REPO]
 ```
 
 Prints everything the writing skills (`write-release-notes`, `write-changelog`) need as one Markdown document on
 stdout:
 
-- **Every referenced issue** — the digit scopes of the titles, read from `--issue-repo` (default: the source
-  repository): title, state, labels, URL, description, comments, and the pull requests that close it
+- **Every referenced issue** — the digit scopes of the titles, read from `--scope-issue-repo` (default: the
+  source repository): title, state, labels, URL, description, comments, and the pull requests that close it
   (GitHub's `closedByPullRequestsReferences`, merged or not, each marked `In this release: yes` or `no`), with
   the release's own pull requests for it. A release pull request whose title references the issue while GitHub
   does not link it — "Related to #12" is no closing keyword — is described under **Unlinked pull requests in
@@ -262,6 +267,6 @@ stdout:
 - An issue or pull request that cannot be read — it does not exist, the number is a pull request rather than an
   issue, the token may not see it — is noted in place with GitHub's reason (`_Could not be read: …_`) and named
   in a warning on stderr. The rest of the dump is still printed, and the run exits `4` rather than `0`.
-- `--issue-repo` takes `OWNER/REPO` without a host, as for `issues`; issues from another repository are written
-  as `OWNER/REPO#N`. A malformed value fails before anything is fetched, with exit code `1` and the kind
-  `invalid_repo_ref`.
+- `--scope-issue-repo` takes `OWNER/REPO` without a host, as for `issues`, where its old name `--issue-repo`
+  also still works; issues from another repository are written as `OWNER/REPO#N`. A malformed value fails
+  before anything is fetched, with exit code `1` and the kind `invalid_repo_ref`.

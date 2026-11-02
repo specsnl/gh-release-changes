@@ -86,12 +86,12 @@ Every rendering command starts with the same step, `App.loadRelease` in `interna
 repository and the previous tag. Unclassified items are warned about there, once, on stderr. A command then only
 turns the `Release` into its product on stdout:
 
-| Command  | File        | Product                                                                                      |
-|----------|-------------|----------------------------------------------------------------------------------------------|
-| `items`  | `items.go`  | `changes.Release` marshalled as indented JSON                                                |
-| `sort`   | `sort.go`   | `render.Sort`: the grouped "What's Changed" Markdown                                         |
-| `issues` | `issues.go` | `render.Issues`, with the reference form from `--issue-repo`, `--ticket-repo`, `--full-refs` |
-| `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched         |
+| Command  | File        | Product                                                                                            |
+|----------|-------------|----------------------------------------------------------------------------------------------------|
+| `items`  | `items.go`  | `changes.Release` marshalled as indented JSON                                                      |
+| `sort`   | `sort.go`   | `render.Sort`: the grouped "What's Changed" Markdown                                               |
+| `issues` | `issues.go` | `render.Issues`, with the reference form from `--scope-issue-repo`, `--relative-to`, `--full-refs` |
+| `dump`   | `dump.go`   | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched               |
 
 `dump` makes a second request after the notes: it asks the `DetailsSource` for every issue the items reference
 (`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). An issue's linked
@@ -100,6 +100,16 @@ pull requests are only known once it is read, so the release's pull requests an 
 (`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after
 the product is written; the command then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`.
 A failure of either details request as a whole fails the run before anything is printed.
+
+### Renamed flags
+
+A flag that shipped under another name keeps that name as a hidden alias until it is removed:
+`internal/cmd/renamed.go` lists each old name with its replacement. `addRenamedFlags` defines the old name over
+the same `pflag.Value` as the new one, so a command only ever reads the new flag, and marks the two mutually
+exclusive. `App.resolveFlags` calls `warnRenamedFlags`, which warns through `output.Writer` for every old name a
+run was given. pflag's own `MarkDeprecated` is not used: its notice goes to the flag set's output rather than
+the `Writer`. Today that is `--issue-repo` (now `--scope-issue-repo`) and `--ticket-repo` (now `--relative-to`),
+due for removal in [#44](https://github.com/specsnl/gh-release-changes/issues/44).
 
 Command tests drive the whole tree with a fake `NotesSource` answering with the parser's fixtures, and compare
 stdout with golden files under `internal/cmd/testdata/<command>/`; `go test ./internal/cmd -update` rewrites

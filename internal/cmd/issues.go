@@ -14,8 +14,8 @@ import (
 // newIssuesCmd prints the plain issue list per group, for the release ticket.
 func newIssuesCmd(app *App) *cobra.Command {
 	var (
-		issueRepo, ticketRepo string
-		fullRefs              bool
+		scopeIssueRepo, relativeTo string
+		fullRefs                   bool
 	)
 
 	cmd := &cobra.Command{
@@ -23,7 +23,10 @@ func newIssuesCmd(app *App) *cobra.Command {
 		Short: "Print the issues of a release per group, for the release ticket",
 		Args:  tagArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			for _, f := range []struct{ name, value string }{{"--issue-repo", issueRepo}, {"--ticket-repo", ticketRepo}} {
+			for _, f := range []struct{ name, value string }{
+				{"--" + flagScopeIssueRepo, scopeIssueRepo},
+				{"--" + flagRelativeTo, relativeTo},
+			} {
 				if f.value != "" && !isOwnerRepo(f.value) {
 					return fmt.Errorf("%w: %s %q (an issue reference takes OWNER/REPO, without a host)",
 						releasechanges.ErrInvalidRepoRef, f.name, f.value)
@@ -40,13 +43,13 @@ func newIssuesCmd(app *App) *cobra.Command {
 				return err
 			}
 
-			refs := render.IssueRefs{IssueRepo: release.Repo, TicketRepo: release.Repo, Full: fullRefs}
-			if issueRepo != "" {
-				refs.IssueRepo = issueRepo
+			refs := render.IssueRefs{IssueRepo: release.Repo, RelativeTo: release.Repo, Full: fullRefs}
+			if scopeIssueRepo != "" {
+				refs.IssueRepo = scopeIssueRepo
 			}
 
-			if ticketRepo != "" {
-				refs.TicketRepo = ticketRepo
+			if relativeTo != "" {
+				refs.RelativeTo = relativeTo
 			}
 
 			_, err = io.WriteString(app.Stdout, render.Issues(release.Items, refs))
@@ -56,9 +59,12 @@ func newIssuesCmd(app *App) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&issueRepo, "issue-repo", "", "The OWNER/REPO digit scopes point at (default: the source repository)")
-	flags.StringVar(&ticketRepo, "ticket-repo", "", "The OWNER/REPO the list is pasted into (default: the source repository)")
+	flags.StringVar(&scopeIssueRepo, flagScopeIssueRepo, "",
+		"The OWNER/REPO the digit scopes of the titles point at (default: the source repository)")
+	flags.StringVar(&relativeTo, flagRelativeTo, "",
+		"Write references relative to this OWNER/REPO: #N for its own issues (default: the source repository)")
 	flags.BoolVar(&fullRefs, "full-refs", false, "Write every reference as OWNER/REPO#N")
+	addRenamedFlags(cmd)
 
 	return cmd
 }
