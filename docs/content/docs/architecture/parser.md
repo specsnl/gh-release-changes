@@ -32,7 +32,8 @@ sets `bot`.
 Strict, matching the `amannn/action-semantic-pull-request` check the target repositories enforce:
 
 - Format: `<type>[(<scopes>)][!]: <subject>`, with a lower-case type, a space after the colon, and a non-empty
-  subject. `!` sets `breaking`.
+  subject. `!` sets `breaking`. More spaces before the subject are allowed, as the check allows them:
+  `fix(12):  subject` is a fix for `#12`, and its title is kept as written.
 - Types: `feat fix docs style refactor perf test build ci chore revert`.
 - Scopes are comma-separated and trimmed. **Issue numbers** are the digit scopes (`\d+`), in title order and
   deduplicated; `e2e` and every other scope are ignored. There are no `+`/`&`/`and` separators and no keyword
