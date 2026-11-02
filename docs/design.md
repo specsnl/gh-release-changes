@@ -211,7 +211,8 @@ Strict, matching the PR-title action:
 - Line format: `* <title> by @<author> in <pr-url>`; ignore headings, "New Contributors" and the
   "Full Changelog" line. Authors include bots (`@dependabot[bot]` → author `dependabot[bot]`, `bot: true`);
   the PR URL may be on any host (GHES).
-- Title format: `<type>[(<scopes>)][!]: <subject>`. `!` marks a breaking change (`breaking: true`).
+- Title format: `<type>[(<scopes>)][!]: <subject>`. `!` marks a breaking change (`breaking: true`). One space
+  after the colon is required and more are allowed, as the action's `: (.*)` header pattern allows them.
 - Types: the action defaults (`feat fix docs style refactor perf test build ci chore revert`).
 - Groups and order: Features (`feat`), Bug fixes (`fix`), Other (`docs test ci refactor perf style build`,
   `revert`), Maintenance (`chore`), Dependencies (`deps`/`deps-dev` scope or dependabot author),

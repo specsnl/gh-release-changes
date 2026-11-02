@@ -48,6 +48,14 @@ func TestParse_Rules(t *testing.T) {
 			},
 		},
 		{
+			name: "more than one space after the colon",
+			line: line("fix(12):  keep the filter after a reload", "octocat", "6"),
+			want: changes.Item{
+				PR: 6, Title: "fix(12):  keep the filter after a reload", Type: "fix", Scopes: []string{"12"},
+				Issues: []int{12}, Author: "octocat", URL: prURL + "6", Group: changes.GroupFixes,
+			},
+		},
+		{
 			name: "breaking marker without scopes",
 			line: line("refactor!: rename the package", "octocat", "7"),
 			want: changes.Item{
@@ -175,6 +183,7 @@ func TestParse_Unclassified(t *testing.T) {
 		"Feat(12): types are lower case",
 		"feat(12):no space after the colon",
 		"feat(12): ",
+		"feat(12):    ",
 		"feat(): empty scopes",
 		"feat(12) : space before the colon",
 		"feat(12)!:missing space",

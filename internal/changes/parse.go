@@ -14,8 +14,10 @@ var (
 	lineRe = regexp.MustCompile(`^\* (.+) by @(\S+) in (https?://\S+/pull/(\d+))$`)
 
 	// titleRe matches `<type>[(<scopes>)][!]: <subject>`, the format the
-	// PR-title check enforces. Validating the type itself is left to types.
-	titleRe = regexp.MustCompile(`^([a-z]+)(?:\(([^()]+)\))?(!)?: \S`)
+	// PR-title check enforces. That check takes anything after the space, so
+	// further spaces before the subject are allowed too. Validating the type
+	// itself is left to types.
+	titleRe = regexp.MustCompile(`^([a-z]+)(?:\(([^()]+)\))?(!)?: \s*\S`)
 
 	issueScopeRe = regexp.MustCompile(`^\d+$`)
 )
