@@ -1,0 +1,41 @@
+---
+title: "Release {{ .Version }}"
+labels:
+  - release
+---
+{{- /*
+The release ticket of this repository, rendered by `gh release-changes ticket`.
+This comment does not render. Try the template without creating anything:
+
+  gh release-changes ticket v1.4.0-rc.1 --create-in OWNER/tickets \
+    --var environment=PROD \
+    --var db_changes=yes \
+    --var cab=CHG-1234 \
+    --dry-run
+
+The front matter above sets the title (itself a template) and the labels; the
+--title and --label flags override them. The ticket is found again by its labels
+and the version in its title, so a run for rc.2 updates the ticket of rc.1.
+
+Only the part between the gh-release-changes markers is rewritten when the
+ticket is updated. The rest, like the checklist, is written once, so ticked
+boxes and answers survive.
+
+Data: .Repo, .Tag, .Version, .PreviousTag, .Issues, .Items and .Vars, the
+--var key=value pairs. A missing .Vars key fails the render; an optional one is
+read with index and default. Every *.tmpl file in this directory is a part to
+include. Functions: https://docs.atom.codes/sprout/registries/list-of-all-registries
+*/ -}}
+# Release {{ .Version }} of {{ .Repo }}
+
+<!-- gh-release-changes:start -->
+**Tag:** {{ .Tag }}{{ with .PreviousTag }}, compared with {{ . }}{{ end }}
+**Environment:** {{ .Vars.environment | toUpper }}
+**Database changes:** {{ index .Vars "db_changes" | default "no" }}
+**CAB:** {{ index .Vars "cab" | default "n/a" }}
+**Pull requests:** {{ len .Items }}
+
+{{ .Issues -}}
+<!-- gh-release-changes:end -->
+
+{{ include "checklist.md.tmpl" . | trim }}

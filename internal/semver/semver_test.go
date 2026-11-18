@@ -167,3 +167,43 @@ func TestPreviousFinal(t *testing.T) {
 	}
 }
 
+func TestRelease(t *testing.T) {
+	for _, tc := range []struct{ tag, want string }{
+		{"v3.9.0", "3.9.0"},
+		{"v3.9.0-rc.2", "3.9.0"},
+		{"3.9.0+build.1", "3.9.0"},
+		{"release-2024", "release-2024"},
+		{"v2024.1", "2024.1"},
+	} {
+		t.Run(tc.tag, func(t *testing.T) {
+			if got := semver.Release(tc.tag); got != tc.want {
+				t.Errorf("Release(%q) = %q, want %q", tc.tag, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestInTitle(t *testing.T) {
+	for _, tc := range []struct {
+		title, version string
+		want           bool
+	}{
+		{"Release 3.9.0", "3.9.0", true},
+		{"Release 3.9.0-rc.1", "3.9.0", true},
+		{"WOO: release v3.9.0 naar PROD", "3.9.0", true},
+		{"Release 3.9.0.", "3.9.0", true},
+		{"3.9.0", "3.9.0", true},
+		{"Release 13.9.0", "3.9.0", false},
+		{"Release 3.9.01", "3.9.0", false},
+		{"Release 3.9.0.1", "3.9.0", false},
+		{"Release 3.9.1", "3.9.0", false},
+		{"Release 13.9.0 and 3.9.0", "3.9.0", true},
+		{"Release 3.9.0", "", false},
+	} {
+		t.Run(tc.title, func(t *testing.T) {
+			if got := semver.InTitle(tc.title, tc.version); got != tc.want {
+				t.Errorf("InTitle(%q, %q) = %v, want %v", tc.title, tc.version, got, tc.want)
+			}
+		})
+	}
+}

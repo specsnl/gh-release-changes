@@ -1,0 +1,4 @@
+Release {{ .Tag }} of {{ .Repo }}
+{{- if .PreviousTag }}, with the changes since {{ .PreviousTag }}{{ end }}.
+
+{{ .Issues -}}
