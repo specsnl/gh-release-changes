@@ -82,7 +82,7 @@ Everything runs in containers through [Task](https://taskfile.dev) and Docker Co
 | `task checkall`        | Run every check CI runs                             |
 | `task release:dry-run` | Build a snapshot release into `dist/`               |
 | `task docs:serve`      | Serve the docs site with live reload on port 1313   |
-| `task docs:preview`    | Build the docs site and serve it on port 8080       |
+| `task docs:preview`    | Build the docs site and serve it on port 9090       |
 
 ## Releasing
 

@@ -33,7 +33,7 @@ the teardown in the output is not an error.
 | `task release:check`   | Validate `.goreleaser.yml`                                                            |
 | `task release:dry-run` | Local goreleaser snapshot into `dist/`, no publishing                                 |
 | `task docs:serve`      | Hugo dev server with live reload at <http://localhost:1313>                           |
-| `task docs:preview`    | Build the static site and serve it over nginx at <http://localhost:8080>              |
+| `task docs:preview`    | Build the static site and serve it over nginx at <http://localhost:9090>              |
 | `task docs:build`      | Build the static site into `docs/public/`                                             |
 | `task docs:mod:tidy`   | Tidy the Hextra Hugo module in `docs/go.mod`                                          |
 | `task dc:shell`        | Shell into the Go builder                                                             |

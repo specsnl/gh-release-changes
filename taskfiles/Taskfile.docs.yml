@@ -18,15 +18,15 @@ tasks:
           SUB_CMD: "run --rm --service-ports hugo server --bind 0.0.0.0"
 
   preview:
-    desc: Build and serve the static docs site locally (http://localhost:8080)
+    desc: Build and serve the static docs site locally (http://localhost:9090)
     summary: |
-      Builds with --baseURL http://localhost:8080 so the generated absolute URLs
+      Builds with --baseURL http://localhost:9090 so the generated absolute URLs
       point at the preview, then serves docs/public/ over nginx — the same static
       output GitHub Pages gets, rather than the dev server's live-reload render.
     cmds:
       - task: :dc:run:hugo
         vars:
-          SUB_CMD: --minify --baseURL http://localhost:8080
+          SUB_CMD: --minify --baseURL http://localhost:9090
       - task: :dc
         vars:
           SUB_CMD: "run --rm --service-ports docs-preview"
