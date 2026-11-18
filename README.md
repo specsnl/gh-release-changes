@@ -16,14 +16,14 @@ Documentation: <https://gh-release-changes.specs.dev/>
 Every change lands in one group. The identifiers appear in the `items` JSON and are public API: they may be
 added to, never renamed.
 
-| Identifier     | What lands there                                                            |
-|----------------|-----------------------------------------------------------------------------|
-| `features`     | `feat`                                                                      |
-| `fixes`        | `fix`                                                                       |
-| `other`        | `docs test ci refactor perf style build revert`                             |
-| `maintenance`  | `chore`                                                                     |
-| `dependencies` | a `deps` or `deps-dev` scope, or a dependabot author — whatever the type    |
-| `unclassified` | titles outside the `<type>[(<scopes>)][!]: <subject>` format, never dropped |
+| Identifier     | What lands there                                                                                  |
+|----------------|---------------------------------------------------------------------------------------------------|
+| `features`     | `feat`                                                                                            |
+| `fixes`        | `fix`                                                                                             |
+| `other`        | `docs test ci refactor perf style build revert`                                                   |
+| `maintenance`  | `chore`                                                                                           |
+| `dependencies` | a `deps` or `deps-dev` scope on any of the types above, or a dependabot author whatever the title |
+| `unclassified` | titles outside the `<type>[(<scopes>)][!]: <subject>` format, never dropped                       |
 
 ## Install
 
@@ -58,11 +58,11 @@ gh release-changes check-notes v1.2.0 --file notes.md
 gh release-changes items v1.2.0 | jq .    # the JSON every other output is rendered from
 gh release-changes ticket init            # a starter template in .github/release-changes/
 gh release-changes ticket v1.2.0-rc.1 --dry-run
-                                          # the release ticket, created or updated
+                                          # the release ticket, printed rather than written
 ```
 
 The ticket template is a Go template with the functions of
-[Sprout](https://docs.atom.codes/sprout/registries/list-of-all-registries) (without `env` and `filesystem`);
+[Sprout](https://docs.atom.codes/sprout/registries/list-of-all-registries) (without `env`, `filesystem` and `backward`);
 `gh release-changes ticket --help` lists its data and where it is looked up.
 
 Leave out the tag in a terminal to pick one from the repository's tags. The base of the comparison is GitHub's
@@ -82,7 +82,7 @@ Everything runs in containers through [Task](https://taskfile.dev) and Docker Co
 | `task checkall`        | Run every check CI runs                             |
 | `task release:dry-run` | Build a snapshot release into `dist/`               |
 | `task docs:serve`      | Serve the docs site with live reload on port 1313   |
-| `task docs:preview`    | Build the docs site and serve it on port 8080       |
+| `task docs:preview`    | Build the docs site and serve it on port 9090       |
 
 ## Releasing
 

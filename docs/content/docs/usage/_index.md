@@ -10,13 +10,14 @@ the reasoning behind the choices they describe lives in the [architecture sectio
 gh release-changes [flags] <command> [<tag>]
 ```
 
-| Page                                                  | Covers                                                    |
-|-------------------------------------------------------|-----------------------------------------------------------|
-| [Getting started]({{< ref "./getting-started.md" >}}) | Install, authenticate, first run                          |
-| [Commands]({{< ref "./commands.md" >}})               | Every command and flag                                    |
-| [The release ticket]({{< ref "./ticket.md" >}})       | `ticket` and `ticket init`: templates, data, functions    |
-| [The `items` JSON]({{< ref "./items-json.md" >}})     | The JSON contract: fields, groups, and what is stable     |
-| [Exit codes]({{< ref "./exit-codes.md" >}})           | `0`, `1` and the outcome bit `4`, and what each one means |
+| Page                                                  | Covers                                                         |
+|-------------------------------------------------------|----------------------------------------------------------------|
+| [Getting started]({{< ref "./getting-started.md" >}}) | Install, authenticate, first run                               |
+| [The release flow]({{< ref "./release-flow.md" >}})   | Which command to run on which tag, from `rc.1` to the final    |
+| [Commands]({{< ref "./commands.md" >}})               | Every command and flag                                         |
+| [The release ticket]({{< ref "./ticket.md" >}})       | `ticket` and `ticket init`: templates, data, functions         |
+| [The `items` JSON]({{< ref "./items-json.md" >}})     | The JSON contract: fields, groups, and what is stable          |
+| [Exit codes]({{< ref "./exit-codes.md" >}})           | `0`, `1` and the outcome bits `2` and `4`, and what each means |
 
 ## Output, in one paragraph
 

@@ -1,6 +1,6 @@
 ---
 title: Commands
-weight: 2
+weight: 3
 ---
 
 ```text
@@ -68,18 +68,19 @@ offers the repository's tags to pick from:
 - newest first by semantic version (`v1.10.0` before `v1.9.0`, `v2.0.0` before `v2.0.0-rc.2`), release
   candidates and other pre-releases included;
 - tags that are not a semantic version after them;
-- 10 at a time — type to filter over all of them, arrows to move, Enter to pick, Esc or Ctrl+C to cancel.
+- 10 at a time — type to filter over all of them, arrows to move, Enter to pick, Ctrl+C to cancel; Esc ends or
+  clears the filter.
 
-The picker is drawn on stderr, so `gh release-changes sort > notes.md` still captures only the notes. It is only
-shown when stdin and stdout are terminals: without one — in a pipeline, a script or an agent's shell — a missing
-tag fails at once with exit code `1` and an error along the lines of:
+The picker is drawn on stderr, and only shown when stdin and stdout are both terminals. Without them — output
+redirected to a file or piped, a script, an agent's shell — a missing tag fails at once with exit code `1` and an
+error along the lines of:
 
 ```text
 error: operation requires an interactive terminal: pass the tag, as in `gh release-changes sort <tag>`,
 or run it in a terminal to pick one
 ```
 
-Scripts and agents should always pass the tag.
+So `gh release-changes sort > notes.md` needs the tag, as do scripts and agents.
 
 `--previous-tag` has no picker: GitHub's choice of base fits the release flow, and the flag takes a tag when you
 want another one.
@@ -98,7 +99,8 @@ release flow without logic of its own:
 
 A final is compared with the previous final, so it covers the whole release-candidate cycle. `--previous-tag`
 overrides the base. Both tags must exist: `generate-notes` silently compares the default branch for an unknown
-tag, so the tool checks them first and fails with `tag_not_found`.
+tag, so the tool checks them first and fails with `tag_not_found`. [The release flow]({{< ref "./release-flow.md" >}})
+shows which range to use at which moment.
 
 ### The whole release cycle: `--since-final`
 
@@ -175,7 +177,8 @@ Prints the changes of the release as one JSON object on stdout: the contract ski
 The fields, the groups and the order are described in [The `items` JSON]({{< ref "./items-json.md" >}}).
 
 Pull requests whose title is outside the `<type>[(<scopes>)][!]: <subject>` format land in the `unclassified`
-group and are named in a warning on stderr. They do not change the exit code.
+group and are named in a warning on stderr; Dependabot's are in `dependencies` whatever their title. They do
+not change the exit code.
 
 ## `sort`
 
@@ -409,8 +412,8 @@ stdout:
 - An issue or pull request that cannot be read — it does not exist, the number is a pull request rather than an
   issue, the token may not see it — is noted in place with GitHub's reason (`_Could not be read: …_`) and named
   in a warning on stderr. The rest of the dump is still printed, and the run exits `4` rather than `0`.
-- `--scope-issue-repo` takes `OWNER/REPO` without a host, as for `issues`, where its old name `--issue-repo`
-  also still works; issues from another repository are written as `OWNER/REPO#N`. A malformed value fails
+- `--scope-issue-repo` takes `OWNER/REPO` without a host, as for `issues`; issues from another repository are
+  written as `OWNER/REPO#N`. A malformed value fails
   before anything is fetched, with exit code `1` and the same error as for `issues`.
 
 ## `check-notes`
@@ -451,8 +454,9 @@ question, not a failure: branch on it with `(( code & 2 ))`.
 - **A reference to one of the release's own pull requests** is in the release, so it is not reported — notes
   may name the pull request of a change without an issue. It does not cover the issue the pull request fixes.
 - What GitHub would not link is not read as a reference either: `#N` glued to a word or a path (`v2#3`,
-  `docs/setup.md#12`), an HTML entity (`&#39;`), or a number followed by letters (`#12abc`). References in code
-  blocks are read like any other.
+  `docs/guide/setup.md#12`), an HTML entity (`&#39;`), or a number followed by letters (`#12abc`). A path of two
+  segments, `docs/setup.md#12`, reads as `OWNER/REPO#N`. References in code blocks are read like any
+  other.
 - The report writes its references relative to the `--relative-to` repository, as `issues` does.
 - `--file` is required; a file that cannot be read fails the run with exit code `1` before the release is
   fetched. The repository flags take `OWNER/REPO` without a host and are checked first, with the same error as
@@ -466,7 +470,8 @@ gh release-changes ticket init
 ```
 
 Creates the release ticket, an issue rendered from `.github/release-changes/ticket.md.tmpl`, and updates it for
-every later release candidate: only the part between its `gh-release-changes` markers is rewritten. It compares
+every later release candidate: its title, and only the part of the body between its `gh-release-changes`
+markers, are rewritten. It compares
 with the previous final release by default, and lists the pull requests without an issue. `ticket init` writes
 a starter template. The template's lookup order, data and functions are on
 [The release ticket]({{< ref "./ticket.md" >}}).

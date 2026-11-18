@@ -1,7 +1,7 @@
 ---
 title: The items JSON
 linkTitle: The items JSON
-weight: 4
+weight: 5
 ---
 
 `gh release-changes items <tag>` prints one JSON object, indented with two spaces, to stdout. It is an object
@@ -34,14 +34,14 @@ public API: they may be added to, never renamed.**
 
 In display order:
 
-| Identifier     | Name         | What lands there                                                            |
-|----------------|--------------|-----------------------------------------------------------------------------|
-| `features`     | Features     | `feat`                                                                      |
-| `fixes`        | Bug fixes    | `fix`                                                                       |
-| `other`        | Other        | `docs test ci refactor perf style build revert`                             |
-| `maintenance`  | Maintenance  | `chore`                                                                     |
-| `dependencies` | Dependencies | a `deps` or `deps-dev` scope, or a dependabot author — whatever the type    |
-| `unclassified` | Unclassified | titles outside the `<type>[(<scopes>)][!]: <subject>` format, never dropped |
+| Identifier     | Name         | What lands there                                                                                  |
+|----------------|--------------|---------------------------------------------------------------------------------------------------|
+| `features`     | Features     | `feat`                                                                                            |
+| `fixes`        | Bug fixes    | `fix`                                                                                             |
+| `other`        | Other        | `docs test ci refactor perf style build revert`                                                   |
+| `maintenance`  | Maintenance  | `chore`                                                                                           |
+| `dependencies` | Dependencies | a `deps` or `deps-dev` scope on any of the types above, or a dependabot author whatever the title |
+| `unclassified` | Unclassified | titles outside the `<type>[(<scopes>)][!]: <subject>` format, never dropped                       |
 
 Items are listed in display order: by group as above, then by first issue number and PR number, with items
 without an issue last; dependencies by PR number. `scopes` and `issues` are always arrays, never `null`. An

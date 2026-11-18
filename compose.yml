@@ -116,4 +116,4 @@ services:
       - ./docs/public:/usr/share/nginx/html:ro
       - ./docs/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "8080:80"
+      - "9090:80"
