@@ -1,6 +1,6 @@
 ---
 title: Exit codes
-weight: 5
+weight: 6
 ---
 
 Borrowed from labelsync, which borrowed them from `terraform plan -detailed-exitcode`. The outcome codes are

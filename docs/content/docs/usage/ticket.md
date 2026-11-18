@@ -1,6 +1,6 @@
 ---
 title: The release ticket
-weight: 3
+weight: 4
 ---
 
 `ticket` creates the release ticket — an issue that lists the issues of a release — and updates it as release

@@ -1,6 +1,6 @@
 ---
 title: Commands
-weight: 2
+weight: 3
 ---
 
 ```text
@@ -98,7 +98,8 @@ release flow without logic of its own:
 
 A final is compared with the previous final, so it covers the whole release-candidate cycle. `--previous-tag`
 overrides the base. Both tags must exist: `generate-notes` silently compares the default branch for an unknown
-tag, so the tool checks them first and fails with `tag_not_found`.
+tag, so the tool checks them first and fails with `tag_not_found`. [The release flow]({{< ref "./release-flow.md" >}})
+shows which range to use at which moment.
 
 ### The whole release cycle: `--since-final`
 
