@@ -41,7 +41,7 @@ flowchart TD
 The template is found and parsed before the release is read, so a template that does not parse fails without
 generating notes. `ticket` turns `--since-final` on unless `--previous-tag` or `--since-final` was given, by
 setting `App.SinceFinal` when neither flag is `Changed`. `--link closing` stays opt-in, as for every command:
-`--link` has no spelling to turn it off again, and without it the ticket costs no GraphQL request.
+`--link` has no spelling to turn it off again, and without it the ticket makes no closing-references query.
 
 ## The template set
 

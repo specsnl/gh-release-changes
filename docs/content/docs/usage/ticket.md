@@ -40,9 +40,9 @@ gh release-changes ticket v1.4.0-rc.1 --create-in OWNER/tickets --var environmen
    closed, that carries every label and whose title names the release's version — `1.4.0` for `v1.4.0-rc.2`
    as for `v1.4.0`, so `1.4.0-rc.1` in a title matches but `1.4.01` does not. More than one fails with
    `ticket_ambiguous`, naming them.
-6. **Shows the ticket and asks**, on a terminal. `--yes` writes without asking; without a terminal and without
-   `--yes` the run fails with `interactive_required` and writes nothing. `--dry-run` prints the title, the labels
-   and the body on stdout and writes nothing.
+6. **Shows the ticket and asks**, when stdin and stdout are a terminal. `--yes` writes without asking; without a
+   terminal and without `--yes` a run that would write fails with `interactive_required` and writes nothing.
+   `--dry-run` prints the title, the labels and the body on stdout and writes nothing.
 7. **Creates the issue, or updates the one it found**, and prints its URL on stdout. An update rewrites the
    title and the generated part of the body, and leaves the labels alone. A ticket that would not change is not
    written.
@@ -84,8 +84,8 @@ The template is `.github/release-changes/ticket.md.tmpl`. The first one found wi
 4. The built-in default: a line naming the release and the range, and the issue list.
 
 The root of the repository is what `git rev-parse --show-toplevel` answers, so worktrees, submodules, `GIT_DIR`
-and `GIT_WORK_TREE` work; without git, the nearest directory above the current one that holds a `.git` or a
-`.jj`; and in GitHub Actions, when neither finds one, `$GITHUB_WORKSPACE`. A nested `.github` is not a root.
+and `GIT_WORK_TREE` work; without git, the nearest directory — the current one or one above it — that holds a
+`.git` or a `.jj`; and in GitHub Actions, when neither finds one, `$GITHUB_WORKSPACE`. A nested `.github` is not a root.
 Without a root, step 2 is skipped.
 
 ### Parts

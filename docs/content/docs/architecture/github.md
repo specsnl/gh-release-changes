@@ -25,22 +25,23 @@ reaches that host's API.
 
 ## Generating the notes
 
-`GenerateNotes(ctx, tag, previousTag)` makes up to four requests:
+`GenerateNotes(ctx, tag, previousTag)` makes up to three requests:
 
 1. `GET /repos/{owner}/{repo}/git/ref/tags/{tag}` — the tag must exist. `generate-notes` does not fail on an
    unknown `tag_name`: it generates notes up to the default branch instead, so a typo would silently give the
    wrong range.
-2. The same check for `previousTag`, when `--previous-tag` is given.
+2. The same check for `previousTag`, when one is passed: `--previous-tag`, or the final release `--since-final`
+   found.
 3. `POST /repos/{owner}/{repo}/releases/generate-notes` with `tag_name`, and `previous_tag_name` only when
    given — otherwise GitHub chooses the base.
-4. Only after a failed tag check: `GET /repos/{owner}/{repo}`, to tell a missing repository from a missing tag,
-   which are both a 404 on the ref lookup.
+4. Instead of the `POST`, after a tag check that got a 404 or 409: `GET /repos/{owner}/{repo}`, to tell a
+   missing repository from a missing tag, which are both a 404 on the ref lookup.
 
 The release body is never read: it is editable, the generated notes are not.
 
-The result is a `Notes{Body, PreviousTag}`. `PreviousTag` is `--previous-tag` when given, and otherwise read from
-the `**Full Changelog**: …/compare/<previous>...<tag>` line GitHub ends the body with. A first release links to
-`…/commits/<tag>` instead and has no previous tag (`""`).
+The result is a `Notes{Body, PreviousTag}`. `PreviousTag` is the previous tag passed in when there is one, and otherwise
+read from the `**Full Changelog**: …/compare/<previous>...<tag>` line GitHub ends the body with. A first release links
+to `…/commits/<tag>` instead and has no previous tag (`""`).
 
 ## Tags
 

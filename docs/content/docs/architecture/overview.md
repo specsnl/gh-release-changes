@@ -114,18 +114,18 @@ merges them in with `changes.LinkClosing`; a failure there fails the run. A comm
 | `check-notes` | `checknotes.go` | `render.CheckNotes` over the `changes.Coverage` of the notes file                                                    |
 | `ticket`      | `ticket.go`     | The URL of the issue it created or updated from the ticket template; see [Release Ticket]({{< ref "./ticket.md" >}}) |
 
-`dump` makes a second request after the notes: it asks the `DetailsSource` for every issue the items reference
-(`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). `Untracked`
-is defined on `changes.Issueless` — no issue, no dependency update — which is what `issues --unlinked` lists,
-so the two commands cannot drift apart on what "without an issue" means; `dump` narrows it to features and
-fixes. An issue's linked pull requests are only known once it is read, so the release's pull requests an issue
-does not link (`changes.UnlinkedPullRequests`) are asked for in a third request, made only when there are any,
-and merged in (`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after
-the product is written; the command then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`.
-A failure of either details request as a whole fails the run before anything is printed.
+`dump` makes a second call after the notes, one GraphQL query per 25 numbers: it asks the `DetailsSource` for every
+issue the items reference (`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`).
+`Untracked` is defined on `changes.Issueless` — no issue, no dependency update — which is what `issues --unlinked`
+lists, so the two commands cannot drift apart on what "without an issue" means; `dump` narrows it to features and fixes.
+An issue's linked pull requests are only known once it is read, so the release's pull requests an issue does not link
+(`changes.UnlinkedPullRequests`) are asked for in a third call, made only when there are any, and merged in
+(`Details.Merge`). What GitHub could not read is rendered as a note in place and warned about on stderr after the
+product is written; the command then returns a silent `*exit.Err{Code: exit.Skipped}`, so the run exits `4`. A failure
+of either details call as a whole fails the run before anything is printed.
 
 `check-notes` makes no request beyond the notes. It reads the file (or stdin for `-`) after the tag is resolved
-and before the notes are generated, so an unreadable file fails without a call to GitHub. `changes.NoteRefs`
+and before the notes are generated, so an unreadable file fails before the notes are requested. `changes.NoteRefs`
 extracts the references from the text, resolving a bare `#N` against `--relative-to`, and `changes.CheckNotes`
 compares them with `changes.ReferencedIssues` in the `--scope-issue-repo` repository and with the release's pull
 requests in the source repository. Both are pure, so the extraction rules are table tests. A difference is
@@ -133,7 +133,7 @@ written to stdout and the command returns a silent `*exit.Err{Code: exit.Mismatc
 `issues` and `check-notes` share `checkIssueRepoFlags` and `issueRefs`, so the two flags default and validate
 the same way in both.
 
-`issues --titles` makes one more request after the notes, and only when an issue is referenced: it asks the
+`issues --titles` makes one more call after the notes, in batches of 25, and only when an issue is referenced: it asks the
 `TitleSource` for the titles of `changes.ReferencedIssues` in the `--scope-issue-repo` repository, and hands them
 to `render.Issues` as a plain `map[int]string`. A title that could not be read is left out of the map, so its
 issue keeps its bare reference; it is warned about after the product is written and the run exits `4`, as for

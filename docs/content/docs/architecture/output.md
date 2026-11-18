@@ -30,10 +30,10 @@ call; if it only helps someone debugging, it is slog.
 ## `App`
 
 `cmd.App` holds `Stdout`, the writer, the slog level, and the resolved persistent flags (`Repo`, `PreviousTag`,
-`SinceFinal`, `Debug`). Every command is built with it and closes over it. The root's `PersistentPreRunE` rebuilds the streams
-over `cmd.OutOrStdout()` / `cmd.ErrOrStderr()` — never `os.Stdout` / `os.Stderr` — so a test drives the whole
-tree with buffers and asserts on the stdout/stderr split directly. `-R` is checked for shape there; whether the
-repository exists is GitHub's answer.
+`SinceFinal`, `Link`, `Debug`). Every command is built with it and closes over it. The root's `PersistentPreRunE`
+rebuilds the streams over `cmd.OutOrStdout()` / `cmd.ErrOrStderr()` — never `os.Stdout` / `os.Stderr` — so a test drives
+the whole tree with buffers and asserts on the stdout/stderr split directly. `-R` is checked for shape there; whether
+the repository exists is GitHub's answer.
 
 ## TTY detection
 

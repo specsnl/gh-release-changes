@@ -165,9 +165,10 @@ All four come from one source.
   `--require-markers`, fails with `ErrTicketMarkersMissing`. `--since-final` and `--unlinked` are on by
   default; **`--link closing` is not**, as for every command — `--link` has no way to be turned off again. The
   ticket repo is `--create-in` (not `--ticket-repo`, which meant `--relative-to` up to v0.3), default the
-  source repo, and `--relative-to` defaults to it. On a TTY the ticket is shown and confirmed; `--yes` skips
-  that, `--dry-run` prints it, and neither without a TTY is `ErrInteractiveRequired`. `ticket init` writes a
-  starter set to the root.
+  source repo, and `--relative-to` defaults to it. With stdin and stdout on a TTY the ticket is shown and
+  confirmed; `--yes` skips that, `--dry-run` prints it, and neither without a TTY is `ErrInteractiveRequired` —
+  unless the ticket is up to date, which needs no write. `ticket init` writes a starter set to
+  `.github/release-changes/` in the root.
 - **`.github/release.yml`:** `generate-notes` reads it by default. PRs it excludes are considered not worth
   mentioning and stay out. Its categories only add `###` headings above the same `* … by @… in …` lines, and the
   parser ignores headings, so the CLI works with or without the file. The target repo has none today; a fixture
@@ -522,7 +523,7 @@ pass.
 
 Learned along the way:
 
-- `go.mod` says `go 1.26.5` on purpose: golangci-lint v2.12 is built with Go 1.26 and refuses a newer `go`
+- `go.mod` says `go 1.26.7` on purpose: golangci-lint v2.12 is built with Go 1.26 and refuses a newer `go`
   directive. Do not bump it past what golangci-lint supports.
 - GoReleaser v2.19 deprecated `homebrew_casks.hooks.*.install`; CI runs `goreleaser check`, which fails on
   deprecations. The cask hook uses `install_steps` (`on_macos` / `run` / `{{ .StagedPath }}`). Keep the
