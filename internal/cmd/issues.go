@@ -13,6 +13,13 @@ import (
 	"github.com/specsnl/gh-release-changes/internal/util/exit"
 )
 
+// The repository flags of the commands that read issue references: issues,
+// dump and check-notes.
+const (
+	flagScopeIssueRepo = "scope-issue-repo"
+	flagRelativeTo     = "relative-to"
+)
+
 // newIssuesCmd prints the plain issue list per group, for the release ticket.
 //
 // With --titles an issue whose title cannot be read keeps its bare reference,
@@ -89,7 +96,6 @@ func newIssuesCmd(app *App) *cobra.Command {
 	flags.BoolVar(&list.Unlinked, "unlinked", false, "Also list the pull requests without an issue, dependency updates aside")
 	flags.BoolVar(&list.Tasks, "tasks", false, "Write every line as a task: - [ ] #N")
 	flags.BoolVar(&titles, "titles", false, "Follow every issue reference with the issue's title, read from GitHub")
-	addRenamedFlags(cmd)
 
 	return cmd
 }

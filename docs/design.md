@@ -102,9 +102,9 @@ All four come from one source.
   the repo references are written relative to (`--relative-to`, default: the source repo) and full
   (`owner/repo#N`) otherwise; `--full-refs` forces the full form everywhere. Both flags take `OWNER/REPO` without
   a host — an issue reference has none — and the comparison ignores case, as GitHub does. They were
-  `--issue-repo` and `--ticket-repo` up to v0.2, names that read as near-synonyms; the old names are deprecated
-  aliases until #44. The list has an `## Issues` heading and a `###` heading per group,
-  mirroring `sort`, with one `* <ref>` line per issue. `--unlinked` adds a trailing
+  `--issue-repo` and `--ticket-repo` up to v0.2, names that read as near-synonyms; the old names were
+  deprecated aliases in v0.3 and are gone since v0.4. The list has an `## Issues` heading and a `###` heading per
+  group, mirroring `sort`, with one `* <ref>` line per issue. `--unlinked` adds a trailing
   `### Pull requests without an issue` section, one `* #<pr> <title>` line per pull request by PR number: every
   group but Dependencies (`changes.Issueless`, which `dump`'s `changes.Untracked` narrows to features and
   fixes). Release back-merges are left to an `exclude` in `.github/release.yml`; `ticket` turns the section on.

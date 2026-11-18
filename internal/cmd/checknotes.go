@@ -67,7 +67,6 @@ func newCheckNotesCmd(app *App) *cobra.Command {
 		"The OWNER/REPO a bare #N in the notes refers to, and the report is written relative to (default: the source repository)")
 	// Unreachable error: the flag was defined above.
 	_ = cmd.MarkFlagRequired("file")
-	addRenamedFlags(cmd)
 
 	return cmd
 }

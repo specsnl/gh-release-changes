@@ -87,7 +87,6 @@ func newDumpCmd(app *App) *cobra.Command {
 
 	cmd.Flags().StringVar(&issueRepo, flagScopeIssueRepo, "",
 		"The OWNER/REPO the digit scopes of the titles point at (default: the source repository)")
-	addRenamedFlags(cmd)
 
 	return cmd
 }
