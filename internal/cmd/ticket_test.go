@@ -206,6 +206,86 @@ func TestTicket_UpdatesTheGeneratedPart(t *testing.T) {
 	}
 }
 
+// A ticket that lost its markers gets the generated part appended, with a
+// warning, unless --require-markers turns that into a failure that writes
+// nothing — with --dry-run too.
+func TestTicket_MissingMarkers(t *testing.T) {
+	const lost = "- [x] QA done\nold list without markers\n"
+
+	for _, tc := range []struct {
+		name  string
+		flags []string
+		fail  bool
+	}{
+		{"appended", []string{"--yes"}, false},
+		{"required", []string{"--yes", "--require-markers"}, true},
+		{"required, dry run", []string{"--dry-run", "--require-markers"}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			app, fakes := ticketApp(t)
+			fakes.target.tickets = []github.Ticket{{Number: 7, Title: "Release 2.0.0-rc.1", Body: lost}}
+
+			args := append([]string{"-R", fixtureRepo, "ticket", "v2.0.0"}, tc.flags...)
+
+			_, stdout, stderr, err := runApp(t, app, nil, args...)
+
+			if !tc.fail {
+				if err != nil {
+					t.Fatalf("ticket: %v", err)
+				}
+
+				want := strings.TrimSuffix(lost, "\n") + "\n\n" + readRenderGolden(t, "default")
+				if fakes.target.updated == nil || fakes.target.updated.Body != want {
+					t.Fatalf("updated = %+v, want the body %q", fakes.target.updated, want)
+				}
+
+				if !strings.Contains(stderr, "warning: "+fixtureRepo+"#7 has no "+render.TicketStart) {
+					t.Errorf("stderr = %q, want the append warned about", stderr)
+				}
+
+				return
+			}
+
+			if !errors.Is(err, releasechanges.ErrTicketMarkersMissing) {
+				t.Fatalf("error = %v, want ErrTicketMarkersMissing", err)
+			}
+
+			if !strings.Contains(err.Error(), fixtureRepo+"#7") {
+				t.Errorf("error = %v, want it to name the ticket", err)
+			}
+
+			if fakes.target.created != nil || fakes.target.updated != nil || stdout != "" {
+				t.Errorf("a ticket was written or printed: %q", stdout)
+			}
+		})
+	}
+}
+
+// --require-markers is no obstacle when there is nothing to append to: a ticket
+// with its markers, or no ticket yet.
+func TestTicket_RequireMarkersPasses(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		tickets []github.Ticket
+	}{
+		{"markers", []github.Ticket{{Number: 7, Title: "Release 2.0.0-rc.1", Body: render.TicketStart + "\nold\n" + render.TicketEnd + "\n"}}},
+		{"new ticket", nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			app, fakes := ticketApp(t)
+			fakes.target.tickets = tc.tickets
+
+			if _, _, _, err := runApp(t, app, nil, "-R", fixtureRepo, "ticket", "v2.0.0", "--yes", "--require-markers"); err != nil {
+				t.Fatalf("ticket: %v", err)
+			}
+
+			if fakes.target.created == nil && fakes.target.updated == nil {
+				t.Error("no ticket was written")
+			}
+		})
+	}
+}
+
 func TestTicket_UpToDate(t *testing.T) {
 	app, fakes := ticketApp(t)
 	fakes.target.tickets = []github.Ticket{{Number: 7, Title: "Release 2.0.0", Body: readRenderGolden(t, "default"), URL: "u"}}

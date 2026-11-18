@@ -12,7 +12,7 @@ gh release-changes [-R [HOST/]OWNER/REPO] [--previous-tag <tag> | --since-final[
                    [--template <path>] [--title <template>] [--label <name>]... [--var key=value]...
                    [--scope-issue-repo OWNER/REPO] [--relative-to OWNER/REPO] [--full-refs]
                    [--unlinked=false] [--tasks] [--titles]
-                   [--dry-run | --yes]
+                   [--dry-run | --yes] [--require-markers]
 gh release-changes ticket init [--dir <path>] [--force] [--stdout]
 ```
 
@@ -69,6 +69,8 @@ So ticked boxes and answers written in the ticket survive a run for `rc.2`; what
 the markers is written once, when the ticket is created. A template without the markers is generated as a whole:
 its output is wrapped in them. A template must render the markers once each, start first, or not at all. When
 someone removed the markers from the ticket, the generated part is appended to it, with a warning.
+`--require-markers` fails the run instead, with `ticket_markers_missing` and exit code `1`, and writes nothing —
+with `--dry-run` too. Put the markers back around the part to regenerate, or run once without the flag.
 
 ## Where the template comes from
 

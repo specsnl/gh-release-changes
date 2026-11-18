@@ -161,11 +161,13 @@ All four come from one source.
   the release version (`semver.Release`: `v1.4.0-rc.2` → `1.4.0`) as a whole version in the title, open or
   closed; more than one is `ErrTicketAmbiguous`. An update rewrites the title and the part between
   `<!-- gh-release-changes:start -->` and `<!-- gh-release-changes:end -->` (a template without them is wrapped
-  whole) and leaves the labels. `--since-final` and `--unlinked` are on by default; **`--link closing` is not**,
-  as for every command — `--link` has no way to be turned off again. The ticket repo is `--create-in` (not
-  `--ticket-repo`, which meant `--relative-to` up to v0.3), default the source repo, and `--relative-to`
-  defaults to it. On a TTY the ticket is shown and confirmed; `--yes` skips that, `--dry-run` prints it, and
-  neither without a TTY is `ErrInteractiveRequired`. `ticket init` writes a starter set to the root.
+  whole) and leaves the labels; a ticket without them gets the part appended with a warning, or, under
+  `--require-markers`, fails with `ErrTicketMarkersMissing`. `--since-final` and `--unlinked` are on by
+  default; **`--link closing` is not**, as for every command — `--link` has no way to be turned off again. The
+  ticket repo is `--create-in` (not `--ticket-repo`, which meant `--relative-to` up to v0.3), default the
+  source repo, and `--relative-to` defaults to it. On a TTY the ticket is shown and confirmed; `--yes` skips
+  that, `--dry-run` prints it, and neither without a TTY is `ErrInteractiveRequired`. `ticket init` writes a
+  starter set to the root.
 - **`.github/release.yml`:** `generate-notes` reads it by default. PRs it excludes are considered not worth
   mentioning and stay out. Its categories only add `###` headings above the same `* … by @… in …` lines, and the
   parser ignores headings, so the CLI works with or without the file. The target repo has none today; a fixture
@@ -402,17 +404,18 @@ The kind strings are a public contract, for a future machine-readable error outp
 on them. They may be added to, never renamed. `main` prints the error once, as `error: <message>` on stderr;
 Cobra's own error print and the usage block on runtime failures are silenced.
 
-| Sentinel                 | Kind string            |
-|--------------------------|------------------------|
-| `ErrRepoNotFound`        | `repo_not_found`       |
-| `ErrTagNotFound`         | `tag_not_found`        |
-| `ErrForbidden`           | `forbidden`            |
-| `ErrInteractiveRequired` | `interactive_required` |
-| `ErrInvalidRepoRef`      | `invalid_repo_ref`     |
-| `ErrTemplate`            | `template`             |
-| `ErrTemplateExists`      | `template_exists`      |
-| `ErrNoRepoRoot`          | `no_repo_root`         |
-| `ErrTicketAmbiguous`     | `ticket_ambiguous`     |
+| Sentinel                  | Kind string              |
+|---------------------------|--------------------------|
+| `ErrRepoNotFound`         | `repo_not_found`         |
+| `ErrTagNotFound`          | `tag_not_found`          |
+| `ErrForbidden`            | `forbidden`              |
+| `ErrInteractiveRequired`  | `interactive_required`   |
+| `ErrInvalidRepoRef`       | `invalid_repo_ref`       |
+| `ErrTemplate`             | `template`               |
+| `ErrTemplateExists`       | `template_exists`        |
+| `ErrNoRepoRoot`           | `no_repo_root`           |
+| `ErrTicketAmbiguous`      | `ticket_ambiguous`       |
+| `ErrTicketMarkersMissing` | `ticket_markers_missing` |
 
 **Adding a sentinel means adding a row here, a `KindOf` case, and an entry in the `allSentinels` test table**,
 which parses the package source for exported `Err*` variables so an untabled sentinel fails the build.

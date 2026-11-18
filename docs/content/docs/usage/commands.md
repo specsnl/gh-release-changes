@@ -31,6 +31,7 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 │     [--title <template>] [--label <name>]    default: the template's front matter
 │     [--var key=value]                        .Vars in the template
 │     [--dry-run | --yes]
+│     [--require-markers]                      fail when the ticket has lost its markers
 │     [--scope-issue-repo] [--relative-to] [--full-refs] [--unlinked] [--tasks] [--titles]
 │   └── init [--dir <path>] [--force] [--stdout]
 │                                              write a starter template

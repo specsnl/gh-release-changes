@@ -34,7 +34,9 @@ ticket is found again by its labels and the version in its title (3.9.0 for
 v3.9.0-rc.2), and an update rewrites only the part between the
 <!-- gh-release-changes:start --> and <!-- gh-release-changes:end --> markers,
 so ticked boxes and answers written in the ticket survive. A template without
-the markers is generated as a whole.
+the markers is generated as a whole. When the ticket has lost its markers, the
+generated part is appended to it with a warning; --require-markers fails the
+run instead and writes nothing.
 
 The range starts at the previous final release, as with --since-final, unless
 --previous-tag or --since-final=false is given. The issue list includes the
@@ -88,7 +90,7 @@ func newTicketCmd(app *App) *cobra.Command {
 		templateFile, title                  string
 		labels                               []string
 		vars                                 = ticketVars{}
-		dryRun, yes                          bool
+		dryRun, yes, requireMarkers          bool
 	)
 
 	cmd := &cobra.Command{
@@ -170,7 +172,7 @@ func newTicketCmd(app *App) *cobra.Command {
 
 			w := ticketWrite{title: renderedTitle, labels: labels, body: body, target: target}
 
-			if err := app.planTicket(cmd.Context(), &w, semver.Release(tag)); err != nil {
+			if err := app.planTicket(cmd.Context(), &w, semver.Release(tag), requireMarkers); err != nil {
 				return err
 			}
 
@@ -209,6 +211,8 @@ func newTicketCmd(app *App) *cobra.Command {
 	flags.Var(vars, "var", "A key=value pair for the template, as .Vars.key; repeatable")
 	flags.BoolVar(&dryRun, "dry-run", false, "Print the title, labels and body, and write nothing")
 	flags.BoolVar(&yes, "yes", false, "Write the ticket without asking")
+	flags.BoolVar(&requireMarkers, "require-markers", false,
+		"Fail, instead of appending the generated part, when the existing ticket has lost its markers")
 	cmd.MarkFlagsMutuallyExclusive("dry-run", "yes")
 
 	cmd.AddCommand(newTicketInitCmd(app))
@@ -316,8 +320,9 @@ func (w ticketWrite) unchanged() bool {
 }
 
 // planTicket looks for the existing ticket — an issue carrying every label
-// whose title names version — and, when there is one, makes w update it.
-func (a *App) planTicket(ctx context.Context, w *ticketWrite, version string) error {
+// whose title names version — and, when there is one, makes w update it. With
+// requireMarkers, an existing ticket without a marker pair fails the run.
+func (a *App) planTicket(ctx context.Context, w *ticketWrite, version string, requireMarkers bool) error {
 	tickets, err := w.target.Tickets(ctx, w.labels)
 	if err != nil {
 		return err
@@ -346,6 +351,11 @@ func (a *App) planTicket(ctx context.Context, w *ticketWrite, version string) er
 	}
 
 	body, replaced := render.ReplaceGenerated(matches[0].Body, w.body)
+	if !replaced && requireMarkers {
+		return fmt.Errorf("%w: %s#%d has no %s … %s block to replace; put the markers back, or run without --require-markers to append it",
+			releasechanges.ErrTicketMarkersMissing, w.target.Repo(), matches[0].Number, render.TicketStart, render.TicketEnd)
+	}
+
 	if !replaced {
 		a.Out.Warn("%s#%d has no %s … %s block; the generated part is appended",
 			w.target.Repo(), matches[0].Number, render.TicketStart, render.TicketEnd)
