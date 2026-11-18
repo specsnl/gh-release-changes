@@ -20,6 +20,7 @@ const (
 	flagSinceFinal  = "since-final"
 	flagLink        = "link"
 	flagDebug       = "debug"
+	flagVersion     = "version"
 )
 
 // Execute builds the command tree and runs it with a background context.
@@ -59,6 +60,18 @@ release notes against the release, and the release ticket itself.`,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			return app.resolveFlags(cmd)
 		},
+
+		// The root has a RunE only so that --version has somewhere to be handled.
+		// Without the flag it does what a bare `gh release-changes` did before:
+		// print the help. Args stays nil so Cobra's legacy validator keeps
+		// rejecting an unknown subcommand rather than silently showing help for it.
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			if version, _ := cmd.Flags().GetBool(flagVersion); version {
+				return writeVersion(app, true)
+			}
+
+			return cmd.Help()
+		},
 	}
 
 	flags := cmd.PersistentFlags()
@@ -68,6 +81,16 @@ release notes against the release, and the release ticket itself.`,
 	flags.Var(&linkSources{}, flagLink, "Also link issues from these sources: closing (the issues a pull request closes on GitHub)")
 	flags.Bool(flagDebug, false, "Write debug diagnostics to stderr")
 	cmd.MarkFlagsMutuallyExclusive(flagPreviousTag, flagSinceFinal)
+
+	// Local, not persistent: --version answers for the binary, and `gh
+	// release-changes sort --version` would be asking a question the subcommand
+	// does not have.
+	//
+	// Reimplemented rather than enabled with cmd.Version, because Cobra handles
+	// its built-in version flag inside execute() *before* PersistentPreRunE runs,
+	// so it would bypass the App's streams and print a sentence rather than the
+	// bare value `version --dont-prettify` prints.
+	cmd.Flags().Bool(flagVersion, false, "Print the version and exit (same as: version --dont-prettify)")
 
 	cmd.AddCommand(newItemsCmd(app))
 	cmd.AddCommand(newSortCmd(app))

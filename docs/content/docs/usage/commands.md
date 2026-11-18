@@ -9,6 +9,7 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
                    [--since-final]             compare with the previous final release
                    [--link closing]            also the issues a pull request closes
                    [--debug]                   slog diagnostics on stderr
+                   [--version]                 the bare version, then exit
 │
 ├── items [<tag>]                              JSON contract
 ├── sort [<tag>]                               grouped "What's Changed" Markdown
@@ -33,7 +34,7 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 │     [--scope-issue-repo] [--relative-to] [--full-refs] [--unlinked] [--tasks] [--titles]
 │   └── init [--dir <path>] [--force] [--stdout]
 │                                              write a starter template
-└── version
+└── version [--dont-prettify]
 ```
 
 ## Global flags
@@ -53,6 +54,10 @@ error: invalid repository reference: want [HOST/]OWNER/REPO: -R "acme"
 ```
 
 `--previous-tag` and `--since-final` exclude each other; passing both fails with exit code `1`.
+
+`--version` is a root flag rather than a global one — it answers for the binary, so
+`gh release-changes sort --version` is not a question `sort` has to have an opinion about. It is the same as
+[`version --dont-prettify`](#version).
 
 ## The tag
 
@@ -151,7 +156,13 @@ it writes the ticket to; its 403 says so, with the same `forbidden` kind.
 
 ## `version`
 
-Prints `gh-release-changes version <version>` to stdout.
+Prints the version to stdout, so it can be captured:
+
+```shell
+gh release-changes version                    # gh-release-changes version 1.2.3
+gh release-changes version --dont-prettify    # 1.2.3
+gh release-changes --version                  # 1.2.3   — identical to --dont-prettify
+```
 
 ## `items`
 

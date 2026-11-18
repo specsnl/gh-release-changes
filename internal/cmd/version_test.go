@@ -13,17 +13,71 @@ import (
 // there: `gh release-changes version > v.txt` must find it in the file, and
 // nothing narrated beside it.
 func TestVersion(t *testing.T) {
-	_, stdout, stderr, err := run(t, nil, "version")
-	if code := exit.Of(err); code != exit.OK {
-		t.Fatalf("exit code = %s, want %s (error: %v)", code, exit.OK, err)
+	for _, tc := range []struct {
+		name string
+		args []string
+		want string
+	}{
+		{"prettified by default", []string{"version"}, "gh-release-changes version " + cmd.Version + "\n"},
+		{"bare with --dont-prettify", []string{"version", "--dont-prettify"}, cmd.Version + "\n"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, stdout, stderr, err := run(t, nil, tc.args...)
+			if code := exit.Of(err); code != exit.OK {
+				t.Fatalf("exit code = %s, want %s (error: %v)", code, exit.OK, err)
+			}
+
+			if stdout != tc.want {
+				t.Errorf("stdout = %q, want %q", stdout, tc.want)
+			}
+
+			if stderr != "" {
+				t.Errorf("version narrated on stderr: %q", stderr)
+			}
+		})
+	}
+}
+
+// --version is defined as `version --dont-prettify`, so the test is that the two
+// produce the same bytes rather than that each produces something plausible.
+func TestVersion_RootFlagMatchesDontPrettify(t *testing.T) {
+	_, viaFlag, flagStderr, err := run(t, nil, "--version")
+	if err != nil {
+		t.Fatalf("--version: %v", err)
 	}
 
-	if want := "gh-release-changes version " + cmd.Version + "\n"; stdout != want {
-		t.Errorf("stdout = %q, want %q", stdout, want)
+	_, viaCmd, _, err := run(t, nil, "version", "--dont-prettify")
+	if err != nil {
+		t.Fatalf("version --dont-prettify: %v", err)
 	}
 
-	if stderr != "" {
-		t.Errorf("version narrated on stderr: %q", stderr)
+	if viaFlag != viaCmd {
+		t.Errorf("--version = %q, version --dont-prettify = %q; they must agree", viaFlag, viaCmd)
+	}
+
+	if flagStderr != "" {
+		t.Errorf("--version narrated on stderr: %q", flagStderr)
+	}
+}
+
+// --version answers for the binary only; a subcommand has no such flag.
+func TestVersion_RootFlagIsNotPersistent(t *testing.T) {
+	_, _, _, err := run(t, nil, "sort", "--version")
+	if err == nil {
+		t.Fatal("want an error for --version on a subcommand, got none")
+	}
+}
+
+// Without the flag the root still prints its help, the way a bare
+// `gh release-changes` did before the flag gave the root a RunE at all.
+func TestRoot_BareInvocationPrintsHelp(t *testing.T) {
+	_, stdout, _, err := run(t, nil)
+	if err != nil {
+		t.Fatalf("bare invocation: %v", err)
+	}
+
+	if !strings.Contains(stdout, "Usage:") {
+		t.Errorf("stdout = %q, want the help", stdout)
 	}
 }
 
