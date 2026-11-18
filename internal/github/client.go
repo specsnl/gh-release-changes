@@ -100,13 +100,23 @@ func (c *Client) checkRepo(ctx context.Context) error {
 	return nil
 }
 
+// needsContentsWrite is why a read of the release is forbidden: generate-notes
+// needs Contents: write, and the other reads come with it.
+const needsContentsWrite = "generating release notes needs Contents: write access to the repository"
+
 // mapError turns a go-gh HTTP error into a sentinel: a 404 into notFound,
-// reported with subject, and a 403 into ErrForbidden. Every other error comes
-// back unchanged.
+// reported with subject, and a 403 into ErrForbidden, reported as needing
+// Contents: write. Every other error comes back unchanged.
+func (c *Client) mapError(err error, notFound error, subject string) error {
+	return c.mapErrorFor(err, notFound, subject, needsContentsWrite)
+}
+
+// mapErrorFor is [Client.mapError] with the permission a 403 is reported as
+// needing.
 //
 // A 403 is also how GitHub reports an exhausted primary rate limit; that one is
 // not a permission problem, and is not reported as one.
-func (c *Client) mapError(err error, notFound error, subject string) error {
+func (c *Client) mapErrorFor(err error, notFound error, subject, forbidden string) error {
 	var httpErr *api.HTTPError
 	if !errors.As(err, &httpErr) {
 		return err
@@ -122,7 +132,7 @@ func (c *Client) mapError(err error, notFound error, subject string) error {
 			return err
 		}
 
-		return fmt.Errorf("%w: %s", releasechanges.ErrForbidden, c.Repo())
+		return fmt.Errorf("%w: %s: %s", releasechanges.ErrForbidden, forbidden, c.Repo())
 	default:
 		return err
 	}
