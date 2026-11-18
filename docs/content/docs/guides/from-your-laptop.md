@@ -70,7 +70,7 @@ flags.
 ## Pick the tag, or pass it
 
 Leave the tag out on a terminal, and the tool offers the repository's tags: newest first, release candidates
-included. Type to filter, Enter to pick, Esc to cancel.
+included. Type to filter, Enter to pick, Ctrl+C to cancel.
 
 ```shell
 gh rc-ticket --var environment=acc

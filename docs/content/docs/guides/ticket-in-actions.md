@@ -47,6 +47,7 @@ on:
 permissions:
   contents: write # generate-notes needs it, though it creates nothing
   issues: write # create and update the ticket
+  pull-requests: read # --link closing reads what the pull requests close
 
 # One ticket per release: two tags pushed at once must not both create one.
 concurrency:
@@ -64,7 +65,7 @@ jobs:
       TAG: ${{ inputs.tag || github.ref_name }}
       DRY_RUN: ${{ inputs.dry_run || false }}
     steps:
-      # The template is read from this checkout: the one of the tag.
+      # The template is read from this checkout: on a pushed tag, the one of the tag.
       - uses: actions/checkout@v7
 
       - name: Install gh-release-changes
@@ -97,9 +98,11 @@ jobs:
 
 ## The template in a workflow
 
-`ticket` takes the template from the checkout: `actions/checkout` puts the tagged commit in
-`$GITHUB_WORKSPACE`, so the template is the one of the release. Without the checkout step it is read from the
-default branch through the API. Either way it is `.github/release-changes/ticket.md.tmpl`, as described in
+`ticket` takes the template from the checkout. On a pushed tag `actions/checkout` puts the tagged commit in
+`$GITHUB_WORKSPACE`, so the template is the one of the release; a run started by hand checks out the branch it
+was started from, which is what lets a dry run try a template change. Without the checkout step there is no git
+remote to find the repository by: pass `-R "$GITHUB_REPOSITORY"`, and the template is read from the default
+branch through the API. Either way it is `.github/release-changes/ticket.md.tmpl`, as described in
 [where the template comes from]({{< ref "../usage/ticket.md#where-the-template-comes-from" >}}).
 
 Only the part between the markers is rewritten on an update. A checklist outside them is written once, at `rc.1`,
@@ -114,9 +117,9 @@ push, rather than in a workflow of its own.
 
 ## A ticket in another repository
 
-`--create-in OWNER/tickets` writes the ticket somewhere else, such as a repository the product owner and QA
-work in. The workflow's `GITHUB_TOKEN` cannot write there. Use a token that can: a GitHub App installed on both
-repositories (with `actions/create-github-app-token`), with **Contents: write** on the source repository and
+`--create-in OWNER/tickets` writes the ticket somewhere else, such as a repository the product owner and QA work in. The
+workflow's `GITHUB_TOKEN` cannot write there. Use a token that can: a GitHub App installed on both repositories (with
+`actions/create-github-app-token`), with **Contents: write** and **Pull requests: read** on the source repository and
 **Issues: write** on the other. Pass it as `GH_TOKEN`. The references in the ticket are written relative to the
 `--create-in` repository, so they still link to the right issues.
 

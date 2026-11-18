@@ -43,6 +43,8 @@ on:
 
 permissions:
   contents: write # generate-notes needs it, though it creates nothing
+  issues: read # the issues the notes are checked against
+  pull-requests: read # --link closing reads what the pull requests close
 
 jobs:
   check-notes:

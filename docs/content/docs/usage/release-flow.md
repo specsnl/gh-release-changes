@@ -83,17 +83,18 @@ git push origin release/v1.4.0 v1.4.0-rc.1
 Create the release ticket, after a look at what it would be:
 
 ```shell
-gh release-changes --link closing ticket v1.4.0-rc.1 --dry-run
-gh release-changes --link closing ticket v1.4.0-rc.1
+gh release-changes --link closing ticket v1.4.0-rc.1 --var environment=acc --dry-run
+gh release-changes --link closing ticket v1.4.0-rc.1 --var environment=acc
 ```
 
 ```text
 https://github.com/example-org/app/issues/120
 ```
 
-The ticket lists every issue of the release, and the pull requests without one. Its template is the
-repository's; start one with [`ticket init`]({{< ref "./ticket.md#ticket-init" >}}). To have this step happen on
-every pushed tag, see [the release ticket from GitHub Actions]({{< ref "../guides/ticket-in-actions.md" >}}).
+The ticket lists every issue of the release, and the pull requests without one. Its template is the repository's; start
+one with [`ticket init`]({{< ref "./ticket.md#ticket-init" >}}), whose template requires the `environment` passed with
+`--var`. To have this step happen on every pushed tag, see [the release ticket from GitHub Actions]({{< ref
+"../guides/ticket-in-actions.md" >}}).
 
 ### 2. Test and fix: `rc.2`
 
@@ -103,7 +104,7 @@ Update the ticket. It is found by its label and the version in its title, and co
 again, so it keeps the whole release rather than shrinking to `fix(14)`:
 
 ```shell
-gh release-changes --link closing ticket v1.4.0-rc.2
+gh release-changes --link closing ticket v1.4.0-rc.2 --var environment=acc
 ```
 
 What to test again is the delta, GitHub's own range:
@@ -159,7 +160,7 @@ ticket one last time:
 ```shell
 git tag --annotate v1.4.0 --message "Release v1.4.0" "v1.4.0-rc.3^{commit}"
 git push origin v1.4.0
-gh release-changes --link closing ticket v1.4.0
+gh release-changes --link closing ticket v1.4.0 --var environment=prod
 ```
 
 GitHub compares the final with `v1.3.0`, so `sort` gives the whole release for the GitHub release:
@@ -170,9 +171,10 @@ gh release create v1.4.0 --verify-tag --title v1.4.0 --notes-file <(gh release-c
 
 ### 5. Merge back into `main`
 
-Merge `release/v1.4.0` into `main` with a pull request. That pull request is a change of the next release, so it
-shows up in `v1.5.0-rc.1`'s lists as Maintenance, and in `issues --unlinked`. Keep it out of every command by
-labelling it, and excluding the label in the repository's `.github/release.yml`:
+Merge `release/v1.4.0` into `main` with a pull request. That pull request is a change of the next release, so it shows
+up in `v1.5.0-rc.1`'s lists — as Maintenance when it is titled `chore: …`, as Unclassified otherwise — and in
+`issues --unlinked`. Keep it out of every command by labelling it, and excluding the label in the repository's
+`.github/release.yml`:
 
 ```yaml
 changelog:
