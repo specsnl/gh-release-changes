@@ -120,13 +120,6 @@ func TestCheckNotes_IssueRepoFlags(t *testing.T) {
 			"## Notes check\n\nThe notes reference every issue of the release, and nothing outside it.\n",
 			exit.OK,
 		},
-		{
-			"under the old flag names",
-			"#12",
-			[]string{"--issue-repo", "o/tracker", "--ticket-repo", "o/tracker"},
-			"## Notes check\n\nThe notes reference every issue of the release, and nothing outside it.\n",
-			exit.OK,
-		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			fake := &fakeNotes{notes: github.Notes{Body: body}}

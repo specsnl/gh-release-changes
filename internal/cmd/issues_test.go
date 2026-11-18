@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/specsnl/gh-release-changes/internal/changes"
@@ -90,7 +91,7 @@ func TestIssues_UnlinkedWithScopeIssueRepo(t *testing.T) {
 
 // A malformed repository flag fails before anything is fetched.
 func TestIssues_RejectsMalformedRepoFlags(t *testing.T) {
-	for _, flag := range []string{"--scope-issue-repo", "--relative-to", "--issue-repo", "--ticket-repo"} {
+	for _, flag := range []string{"--scope-issue-repo", "--relative-to"} {
 		for _, value := range []string{"app", "o/", "/app", "github.com/o/app", "o/my app"} {
 			t.Run(flag+"="+value, func(t *testing.T) {
 				fake := fixtureNotes(t, "final")
@@ -110,6 +111,28 @@ func TestIssues_RejectsMalformedRepoFlags(t *testing.T) {
 
 				if stdout != "" {
 					t.Errorf("a rejected flag produced a product: %q", stdout)
+				}
+			})
+		}
+	}
+}
+
+// The names --scope-issue-repo and --relative-to replaced are gone.
+func TestRepoFlags_OldNamesAreUnknown(t *testing.T) {
+	for _, command := range [][]string{{"issues", "v2"}, {"dump", "v2"}, {"check-notes", "v2", "--file", "-"}} {
+		for _, old := range []string{"--issue-repo", "--ticket-repo"} {
+			t.Run(command[0]+" "+old, func(t *testing.T) {
+				fake := fixtureNotes(t, "final")
+
+				args := append(append([]string{"-R", "o/app"}, command...), old, "o/tracker")
+
+				_, _, _, err := runApp(t, appWith(fake), nil, args...)
+				if err == nil || !strings.Contains(err.Error(), "unknown flag: "+old) {
+					t.Fatalf("error = %v, want unknown flag: %s", err, old)
+				}
+
+				if fake.tag != "" {
+					t.Error("the notes were fetched despite the unknown flag")
 				}
 			})
 		}
