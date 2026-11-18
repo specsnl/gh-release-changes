@@ -36,6 +36,12 @@ leaning on gh's authentication removes all token handling.
 `internal/cmd.Version` is set with `-ldflags -X` by `.goreleaser.yml` and the Taskfile's `build`. A test asserts
 both files name that exact path, because renaming the variable would make every build silently report `dev`.
 
+`gh release-changes --version` is defined to mean `gh release-changes version --dont-prettify`, and both call
+the same `writeVersion`, so the two cannot drift. The flag is local to the root, not persistent: it answers for
+the binary, not for a subcommand. It is handled in the root's `RunE` rather than through Cobra's built-in
+`cmd.Version`, which Cobra handles before `PersistentPreRunE` has pointed the `App` at the command's streams.
+Without the flag the root's `RunE` prints the help, as a bare invocation did before.
+
 ## This site
 
 Hugo with the [Hextra](https://github.com/imfing/hextra) theme under `docs/`, as a Hugo module in its own

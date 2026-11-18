@@ -181,6 +181,7 @@ gh release-changes [-R owner/repo]              default: the repository of the c
                    [--since-final]              compare with the previous final release
                    [--link closing]             also the issues a pull request closes
                    [--debug]                    slog diagnostics on stderr
+                   [--version]                  same as: version --dont-prettify
 │
 ├── items [<tag>]                               JSON contract, see below
 ├── sort [<tag>]                                grouped "What's Changed" Markdown
@@ -201,7 +202,7 @@ gh release-changes [-R owner/repo]              default: the repository of the c
 │     [--template <path>] [--title <template>] [--label <name>] [--var key=value]
 │     [--dry-run | --yes]
 │   └── init [--dir <path>] [--force] [--stdout] write a starter template
-└── version
+└── version [--dont-prettify]
 ```
 
 | Command       | Output                                                                        | Used by                                  |
