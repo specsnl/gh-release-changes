@@ -4,6 +4,7 @@ go 1.26.7
 
 require (
 	charm.land/huh/v2 v2.0.3
+	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/cli/go-gh/v2 v2.17.0
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/term v0.48.0
