@@ -10,25 +10,25 @@ import (
 func TestParse(t *testing.T) {
 	for _, tc := range []struct {
 		tag  string
-		want semver.Version
+		want string
 		ok   bool
 	}{
-		{"v1.2.3", semver.Version{Major: 1, Minor: 2, Patch: 3}, true},
-		{"1.2.3", semver.Version{Major: 1, Minor: 2, Patch: 3}, true},
-		{"v0.0.0", semver.Version{}, true},
-		{"v2.0.0-rc.1", semver.Version{Major: 2, Prerelease: []string{"rc", "1"}}, true},
-		{"v1.0.0-alpha-1.x", semver.Version{Major: 1, Prerelease: []string{"alpha-1", "x"}}, true},
-		{"v1.0.0+build.5", semver.Version{Major: 1}, true},
-		{"v1.0.0-beta+exp.sha.5114f85", semver.Version{Major: 1, Prerelease: []string{"beta"}}, true},
-		{"v1.2", semver.Version{}, false},
-		{"v1.2.3.4", semver.Version{}, false},
-		{"V1.2.3", semver.Version{}, false},
-		{"v01.2.3", semver.Version{}, false},
-		{"v1.2.3-01", semver.Version{}, false},
-		{"v1.2.3-", semver.Version{}, false},
-		{"release/1.0", semver.Version{}, false},
-		{"latest", semver.Version{}, false},
-		{"", semver.Version{}, false},
+		{"v1.2.3", "1.2.3", true},
+		{"1.2.3", "1.2.3", true},
+		{"v0.0.0", "0.0.0", true},
+		{"v2.0.0-rc.1", "2.0.0-rc.1", true},
+		{"v1.0.0-alpha-1.x", "1.0.0-alpha-1.x", true},
+		{"v1.0.0+build.5", "1.0.0+build.5", true},
+		{"v1.0.0-beta+exp.sha.5114f85", "1.0.0-beta+exp.sha.5114f85", true},
+		{"v1.2", "", false},
+		{"v1.2.3.4", "", false},
+		{"V1.2.3", "", false},
+		{"v01.2.3", "", false},
+		{"v1.2.3-01", "", false},
+		{"v1.2.3-", "", false},
+		{"release/1.0", "", false},
+		{"latest", "", false},
+		{"", "", false},
 	} {
 		t.Run(tc.tag, func(t *testing.T) {
 			got, ok := semver.Parse(tc.tag)
@@ -36,16 +36,15 @@ func TestParse(t *testing.T) {
 				t.Fatalf("Parse(%q) ok = %v, want %v", tc.tag, ok, tc.ok)
 			}
 
-			if ok && (got.Major != tc.want.Major || got.Minor != tc.want.Minor || got.Patch != tc.want.Patch ||
-				!slices.Equal(got.Prerelease, tc.want.Prerelease)) {
-				t.Errorf("Parse(%q) = %+v, want %+v", tc.tag, got, tc.want)
+			if ok && got.String() != tc.want {
+				t.Errorf("Parse(%q) = %s, want %s", tc.tag, got, tc.want)
 			}
 		})
 	}
 }
 
 // The precedence example from the specification, rule 11, lowest first.
-func TestCompare_SpecificationOrder(t *testing.T) {
+func TestParse_SpecificationOrder(t *testing.T) {
 	ordered := []string{
 		"1.0.0-alpha", "1.0.0-alpha.1", "1.0.0-alpha.beta", "1.0.0-beta", "1.0.0-beta.2", "1.0.0-beta.11",
 		"1.0.0-rc.1", "1.0.0", "2.0.0", "2.1.0", "2.1.1",
@@ -55,21 +54,21 @@ func TestCompare_SpecificationOrder(t *testing.T) {
 		a, _ := semver.Parse(ordered[i])
 		b, _ := semver.Parse(ordered[i+1])
 
-		if c := semver.Compare(a, b); c != -1 {
+		if c := a.Compare(b); c != -1 {
 			t.Errorf("Compare(%s, %s) = %d, want -1", ordered[i], ordered[i+1], c)
 		}
 
-		if c := semver.Compare(b, a); c != 1 {
+		if c := b.Compare(a); c != 1 {
 			t.Errorf("Compare(%s, %s) = %d, want 1", ordered[i+1], ordered[i], c)
 		}
 	}
 }
 
-func TestCompare_BuildMetadataDoesNotDecide(t *testing.T) {
+func TestParse_BuildMetadataDoesNotDecide(t *testing.T) {
 	a, _ := semver.Parse("v1.0.0+one")
 	b, _ := semver.Parse("v1.0.0+two")
 
-	if c := semver.Compare(a, b); c != 0 {
+	if c := a.Compare(b); c != 0 {
 		t.Errorf("Compare = %d, want 0", c)
 	}
 }
@@ -163,6 +162,47 @@ func TestPreviousFinal(t *testing.T) {
 			got, ok := semver.PreviousFinal(tc.tags, tc.target)
 			if got != tc.want || ok != tc.ok {
 				t.Errorf("PreviousFinal(%s) = %q, %v, want %q, %v", tc.target, got, ok, tc.want, tc.ok)
+			}
+		})
+	}
+}
+
+func TestRelease(t *testing.T) {
+	for _, tc := range []struct{ tag, want string }{
+		{"v3.9.0", "3.9.0"},
+		{"v3.9.0-rc.2", "3.9.0"},
+		{"3.9.0+build.1", "3.9.0"},
+		{"release-2024", "release-2024"},
+		{"v2024.1", "2024.1"},
+	} {
+		t.Run(tc.tag, func(t *testing.T) {
+			if got := semver.Release(tc.tag); got != tc.want {
+				t.Errorf("Release(%q) = %q, want %q", tc.tag, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestInTitle(t *testing.T) {
+	for _, tc := range []struct {
+		title, version string
+		want           bool
+	}{
+		{"Release 3.9.0", "3.9.0", true},
+		{"Release 3.9.0-rc.1", "3.9.0", true},
+		{"WOO: release v3.9.0 naar PROD", "3.9.0", true},
+		{"Release 3.9.0.", "3.9.0", true},
+		{"3.9.0", "3.9.0", true},
+		{"Release 13.9.0", "3.9.0", false},
+		{"Release 3.9.01", "3.9.0", false},
+		{"Release 3.9.0.1", "3.9.0", false},
+		{"Release 3.9.1", "3.9.0", false},
+		{"Release 13.9.0 and 3.9.0", "3.9.0", true},
+		{"Release 3.9.0", "", false},
+	} {
+		t.Run(tc.title, func(t *testing.T) {
+			if got := semver.InTitle(tc.title, tc.version); got != tc.want {
+				t.Errorf("InTitle(%q, %q) = %v, want %v", tc.title, tc.version, got, tc.want)
 			}
 		})
 	}

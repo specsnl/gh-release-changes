@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -57,33 +58,18 @@ func newIssuesCmd(app *App) *cobra.Command {
 
 			var unreadable map[int]string
 
-			if issues := changes.ReferencedIssues(release.Items); titles && len(issues) > 0 {
-				source, err := app.NewTitleSource(app.Repo)
+			if titles {
+				list.Titles, unreadable, err = app.issueTitles(cmd.Context(), release, refs)
 				if err != nil {
 					return err
 				}
-
-				fetched, err := source.IssueTitles(cmd.Context(), refs.IssueRepo, issues)
-				if err != nil {
-					return err
-				}
-
-				list.Titles, unreadable = fetched.Titles, fetched.Unreadable
 			}
 
 			if _, err := io.WriteString(app.Stdout, render.Issues(release.Items, refs, list)); err != nil {
 				return err
 			}
 
-			for _, n := range sortedKeys(unreadable) {
-				app.Out.Warn("the title of issue %s could not be read and is left out: %s", refs.Ref(n), unreadable[n])
-			}
-
-			if len(unreadable) > 0 {
-				return &exit.Err{Code: exit.Skipped}
-			}
-
-			return nil
+			return app.warnUnreadableTitles(refs, unreadable)
 		},
 	}
 
@@ -98,6 +84,41 @@ func newIssuesCmd(app *App) *cobra.Command {
 	flags.BoolVar(&titles, "titles", false, "Follow every issue reference with the issue's title, read from GitHub")
 
 	return cmd
+}
+
+// issueTitles reads the titles of the issues release references, for --titles.
+// What cannot be read is returned in unreadable, with GitHub's reason.
+func (a *App) issueTitles(ctx context.Context, release changes.Release, refs render.IssueRefs) (titles, unreadable map[int]string, err error) {
+	issues := changes.ReferencedIssues(release.Items)
+	if len(issues) == 0 {
+		return nil, nil, nil
+	}
+
+	source, err := a.NewTitleSource(a.Repo)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	fetched, err := source.IssueTitles(ctx, refs.IssueRepo, issues)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return fetched.Titles, fetched.Unreadable, nil
+}
+
+// warnUnreadableTitles warns about every title --titles could not read, and
+// returns the skipped exit when there is one: the list is still worth pasting.
+func (a *App) warnUnreadableTitles(refs render.IssueRefs, unreadable map[int]string) error {
+	for _, n := range sortedKeys(unreadable) {
+		a.Out.Warn("the title of issue %s could not be read and is left out: %s", refs.Ref(n), unreadable[n])
+	}
+
+	if len(unreadable) > 0 {
+		return &exit.Err{Code: exit.Skipped}
+	}
+
+	return nil
 }
 
 // checkIssueRepoFlags rejects a --scope-issue-repo or --relative-to that is

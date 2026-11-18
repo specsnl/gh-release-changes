@@ -26,6 +26,10 @@ var allSentinels = []struct {
 	{"ErrForbidden", releasechanges.ErrForbidden, "forbidden"},
 	{"ErrInteractiveRequired", releasechanges.ErrInteractiveRequired, "interactive_required"},
 	{"ErrInvalidRepoRef", releasechanges.ErrInvalidRepoRef, "invalid_repo_ref"},
+	{"ErrTemplate", releasechanges.ErrTemplate, "template"},
+	{"ErrTemplateExists", releasechanges.ErrTemplateExists, "template_exists"},
+	{"ErrNoRepoRoot", releasechanges.ErrNoRepoRoot, "no_repo_root"},
+	{"ErrTicketAmbiguous", releasechanges.ErrTicketAmbiguous, "ticket_ambiguous"},
 }
 
 func TestKindOf_KnownSentinels(t *testing.T) {

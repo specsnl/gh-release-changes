@@ -24,6 +24,15 @@ gh release-changes [-R [HOST/]OWNER/REPO]      default: the repository of the cu
 ├── check-notes [<tag>] --file <path>          release notes against the issues of the release
 │     [--scope-issue-repo owner/repo]          default: the source repo
 │     [--relative-to owner/repo]               default: the source repo
+├── ticket [<tag>]                             create or update the release ticket
+│     [--create-in [host/]owner/repo]          default: the source repo
+│     [--template <path>]                      default: .github/release-changes/ticket.md.tmpl
+│     [--title <template>] [--label <name>]    default: the template's front matter
+│     [--var key=value]                        .Vars in the template
+│     [--dry-run | --yes]
+│     [--scope-issue-repo] [--relative-to] [--full-refs] [--unlinked] [--tasks] [--titles]
+│   └── init [--dir <path>] [--force] [--stdout]
+│                                              write a starter template
 └── version
 ```
 
@@ -137,7 +146,8 @@ Without `--link` every output is exactly as before.
 Authentication is `gh`'s own: `gh auth login`, `GH_TOKEN`, and `GH_HOST` or `-R HOST/OWNER/REPO` for GitHub
 Enterprise. Generating release notes needs **Contents: write** on the repository, even though nothing is
 created; with read access only, a run fails with `forbidden`. A repository that does not exist, or that the
-token cannot see, fails with `repo_not_found`.
+token cannot see, fails with `repo_not_found`. [`ticket`](#ticket) also needs **Issues: write** on the repository
+it writes the ticket to; its 403 says so, with the same `forbidden` kind.
 
 ## `version`
 
@@ -435,3 +445,16 @@ question, not a failure: branch on it with `(( code & 2 ))`.
 - `--file` is required; a file that cannot be read fails the run with exit code `1` before the release is
   fetched. The repository flags take `OWNER/REPO` without a host and are checked first, with the same error as
   for `issues`.
+
+## `ticket`
+
+```shell
+gh release-changes ticket [<tag>] [--create-in OWNER/REPO] [--var key=value]... [--dry-run | --yes]
+gh release-changes ticket init
+```
+
+Creates the release ticket, an issue rendered from `.github/release-changes/ticket.md.tmpl`, and updates it for
+every later release candidate: only the part between its `gh-release-changes` markers is rewritten. It compares
+with the previous final release by default, and lists the pull requests without an issue. `ticket init` writes
+a starter template. The template's lookup order, data and functions are on
+[The release ticket]({{< ref "./ticket.md" >}}).

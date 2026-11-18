@@ -3,7 +3,8 @@
 A [gh](https://cli.github.com) extension that sorts and extracts the changes of a GitHub release for its
 different audiences. It reads GitHub's generated release notes (`POST /repos/{owner}/{repo}/releases/generate-notes`)
 and renders them as a grouped "What's Changed" list, an issue list for the release ticket, or an issue dump to
-write release notes from.
+write release notes from. It also creates and updates the release ticket itself, an issue rendered from a
+template in the repository.
 
 It backs the `github-releases` plugin in
 [specsnl/agent-skills-public](https://github.com/specsnl/agent-skills-public).
@@ -55,11 +56,18 @@ gh release-changes dump v1.2.0            # issue details to write release notes
 gh release-changes check-notes v1.2.0 --file notes.md
                                           # notes against the issues of the release
 gh release-changes items v1.2.0 | jq .    # the JSON every other output is rendered from
+gh release-changes ticket init            # a starter template in .github/release-changes/
+gh release-changes ticket v1.2.0-rc.1 --dry-run
+                                          # the release ticket, created or updated
 ```
+
+The ticket template is a Go template with the functions of
+[Sprout](https://docs.atom.codes/sprout/registries/list-of-all-registries) (without `env` and `filesystem`);
+`gh release-changes ticket --help` lists its data and where it is looked up.
 
 Leave out the tag in a terminal to pick one from the repository's tags. The base of the comparison is GitHub's
 choice; `--previous-tag <tag>` overrides it. Generating release notes needs **Contents: write** on the
-repository. Every command and flag is described in [Commands](https://gh-release-changes.specs.dev/docs/usage/commands/).
+repository, and writing the release ticket **Issues: write** where it goes. Every command and flag is described in [Commands](https://gh-release-changes.specs.dev/docs/usage/commands/).
 
 ## Development
 

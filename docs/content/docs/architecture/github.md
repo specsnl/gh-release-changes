@@ -14,6 +14,7 @@ hosts are resolved the way `gh` resolves them, and the tool never sees a token.
 | `tags.go`    | `Tags`: every tag of the repository, for the tag picker, through GraphQL             |
 | `issues.go`  | `Details`: issues and pull requests for `dump`; `IssueTitles` for `issues --titles`  |
 | `closing.go` | `ClosingIssues`: the issues each pull request closes, for `--link closing`           |
+| `ticket.go`  | `TicketTemplates`, `Tickets`, `CreateTicket`, `UpdateTicket`: the release ticket     |
 
 ## The repository
 
@@ -108,18 +109,33 @@ compared without regard to case; the rest, and references beyond the first 25, a
 `--debug`. The pull requests come from the release's own notes, so one that cannot be read fails the call with
 GitHub's reason, rather than leaving its issues out unnoticed.
 
+## The release ticket
+
+`ticket` reads the template from the source repository and writes the issue to the `--create-in` one, each
+through a `Client` of its own; see [Release Ticket]({{< ref "./ticket.md" >}}).
+
+- `TicketTemplates(ctx, dir)`: `GET /repos/{owner}/{repo}/contents/{dir}` lists the directory on the default
+  branch, and `GET …/contents/{path}` reads each `*.tmpl` file in it, base64-decoded. A 404 on the listing is
+  no template, not an error.
+- `Tickets(ctx, labels)`: `GET /repos/{owner}/{repo}/issues?labels=…&state=all&per_page=100`, page by page
+  until a short one, without the pull requests the endpoint also returns.
+- `CreateTicket` and `UpdateTicket`: `POST /repos/{owner}/{repo}/issues`, and `PATCH …/issues/{number}` with
+  the title and body only.
+
 ## Error mapping
 
 | Response                                  | Error                                      |
 |-------------------------------------------|--------------------------------------------|
 | 404 or 409 (empty repository) on a tag    | `ErrTagNotFound`, or `ErrRepoNotFound`     |
 | 404 on `generate-notes` or the repository | `ErrRepoNotFound`                          |
-| 403                                       | `ErrForbidden`: needs Contents: write      |
+| 403                                       | `ErrForbidden`, with the permission needed |
 | 403 with `X-RateLimit-Remaining: 0`       | go-gh's error, unmapped — not a permission |
 | anything else (5xx, network)              | go-gh's error, unmapped                    |
 
 Sentinels are wrapped with `%w` and the tag or repository they are about; the raw response is logged with
-`--debug`. See [Error Handling]({{< ref "./error-handling.md" >}}).
+`--debug`. `mapErrorFor` takes the permission a 403 is reported as needing: Contents: write for the notes and
+the other reads (`mapError`), Issues: write for the ticket, Contents: read for its template. See
+[Error Handling]({{< ref "./error-handling.md" >}}).
 
 ## The boundary for commands
 
@@ -127,7 +143,9 @@ Commands do not use `*github.Client` directly. `cmd.App` holds a `NewNotesSource
 `NotesSource` interface — `GenerateNotes`, and `Repo` for the resolved `OWNER/REPO` — and a `NewDetailsSource`
 factory returning the `DetailsSource` interface (`Details`), a `NewTitleSource` factory returning the
 `TitleSource` interface (`IssueTitles`), a `NewTagSource` factory returning the `TagSource` interface
-(`Tags`), and a `NewClosingSource` factory returning the `ClosingSource` interface (`ClosingIssues`), so a
+(`Tags`), a `NewClosingSource` factory returning the `ClosingSource` interface (`ClosingIssues`), a
+`NewTemplateSource` factory returning the `TemplateSource` interface (`TicketTemplates`), and a
+`NewTicketTarget` factory returning the `TicketTarget` interface (`Tickets`, `CreateTicket`, `UpdateTicket`), so a
 command test swaps in fakes and runs without HTTP. The client itself is
 tested against a `net/http/httptest` server: `NewWithOptions` takes go-gh `ClientOptions`, and a test passes a
 token and a `Transport` that redirects every request to the server. The GraphQL fakes answer from the query the

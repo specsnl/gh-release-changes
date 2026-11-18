@@ -30,10 +30,11 @@ var (
 	// default branch instead — so the tag is checked before the call.
 	ErrTagNotFound = errors.New("tag not found")
 
-	// ErrForbidden is returned when GitHub refuses the call with a 403.
-	// generate-notes needs Contents: write even though it creates nothing, so a
-	// user with read access hits this; the message says so.
-	ErrForbidden = errors.New("forbidden: generating release notes needs Contents: write access to the repository")
+	// ErrForbidden is returned when GitHub refuses the call with a 403. The call
+	// site adds the permission it needs: generate-notes needs Contents: write
+	// even though it creates nothing, so a user with read access hits this, and
+	// writing the release ticket needs Issues: write.
+	ErrForbidden = errors.New("forbidden")
 
 	// ErrInteractiveRequired is returned when a run needs a prompt — the tag
 	// picker, without a tag argument — but stdin and stdout are not terminals.
@@ -42,6 +43,22 @@ var (
 	// ErrInvalidRepoRef is returned when a repository reference is not in
 	// [HOST/]OWNER/REPO form.
 	ErrInvalidRepoRef = errors.New("invalid repository reference: want [HOST/]OWNER/REPO")
+
+	// ErrTemplate is returned when the ticket template cannot be read, parsed or
+	// rendered. The message names the file.
+	ErrTemplate = errors.New("ticket template")
+
+	// ErrTemplateExists is returned when ticket init would overwrite a file
+	// without --force.
+	ErrTemplateExists = errors.New("template already exists")
+
+	// ErrNoRepoRoot is returned when ticket init finds no repository root above
+	// the current directory to write to, and --dir is not given.
+	ErrNoRepoRoot = errors.New("no repository root found")
+
+	// ErrTicketAmbiguous is returned when more than one issue matches the
+	// release ticket, so it is unclear which one to update.
+	ErrTicketAmbiguous = errors.New("more than one issue matches the release ticket")
 )
 
 // KindOf returns a stable, machine-readable string identifier for the sentinel
@@ -61,6 +78,14 @@ func KindOf(err error) string {
 		return "interactive_required"
 	case errors.Is(err, ErrInvalidRepoRef):
 		return "invalid_repo_ref"
+	case errors.Is(err, ErrTemplate):
+		return "template"
+	case errors.Is(err, ErrTemplateExists):
+		return "template_exists"
+	case errors.Is(err, ErrNoRepoRoot):
+		return "no_repo_root"
+	case errors.Is(err, ErrTicketAmbiguous):
+		return "ticket_ambiguous"
 	default:
 		return ""
 	}

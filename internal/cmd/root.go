@@ -45,8 +45,8 @@ func NewRootCmd(app *App) *cobra.Command {
 		Short: "Sort and extract the changes of a GitHub release",
 		Long: `gh release-changes reads the generated notes of a GitHub release and renders
 them for different audiences: a grouped "What's Changed" list, an issue list
-for the release ticket, an issue dump to write release notes from, and a check
-of release notes against the release.`,
+for the release ticket, an issue dump to write release notes from, a check of
+release notes against the release, and the release ticket itself.`,
 
 		// Usage helps with a bad flag, not with "tag not found"; on a runtime
 		// failure it buries the one line that matters.
@@ -74,6 +74,7 @@ of release notes against the release.`,
 	cmd.AddCommand(newIssuesCmd(app))
 	cmd.AddCommand(newDumpCmd(app))
 	cmd.AddCommand(newCheckNotesCmd(app))
+	cmd.AddCommand(newTicketCmd(app))
 	cmd.AddCommand(newVersionCmd(app))
 	cmd.AddCommand(newNotesCmd(app))
 

@@ -365,3 +365,15 @@ func TestNew_RejectsAMalformedRepo(t *testing.T) {
 		t.Errorf("error = %v, want ErrInvalidRepoRef", err)
 	}
 }
+
+// The 403 on generate-notes says which permission it needs.
+func TestGenerateNotes_ForbiddenNamesContentsWrite(t *testing.T) {
+	fake := &fakeGitHub{repo: "example-org/app", tags: []string{"v1.2.0"}, notesStatus: http.StatusForbidden}
+
+	_, err := newClient(t, fake, "example-org/app").GenerateNotes(context.Background(), "v1.2.0", "")
+
+	want := "forbidden: generating release notes needs Contents: write access to the repository: example-org/app"
+	if err == nil || err.Error() != want {
+		t.Errorf("error = %v, want %q", err, want)
+	}
+}

@@ -33,7 +33,9 @@ The design was first discussed in `specsnl/agent-skills-public` (`docs/plans/gh-
 ## Non-goals
 
 - Writing prose. The Dutch release notes and changelog are the plugin's job; the CLI hands it the facts.
-- Editing releases. The release body is never read and never written.
+- Editing releases. The release body is never read and never written. The one thing written to GitHub is the
+  release ticket (`ticket`), an issue; the one thing written locally is `ticket init`'s starter template. Git
+  state — branches, tags, dumps — is never changed.
 - Supporting PR-title conventions other than the one the target repos enforce (see
   [Parser rules](#parser-rules)). No keyword fallback for free-form titles; the one source beyond the title is
   GitHub's own closing references, opt-in (`--link closing`).
@@ -76,8 +78,8 @@ All four come from one source.
   (issue number). Multiple scopes are comma-separated (`feat(6768,6747):`).
 - Titles outside the format still get merged (`fixer-improvement` in `v3.8.0` of that repo), so the parser has
   to handle them.
-- The release ticket is a GitHub issue, possibly in a different repo. It is created by hand for now;
-  automating it is a likely next step.
+- The release ticket is a GitHub issue, possibly in a different repo. It was created by hand;
+  `ticket` (#1) creates and updates it from a template.
 - Release notes are written for final tags, but it must also work for RC and patch/fix tags.
 
 ---
@@ -147,6 +149,23 @@ All four come from one source.
   `charm.land/huh/v2` `Select` drawn on stderr, behind a `TagPicker` seam on `App`. `--previous-tag` gets no
   picker: GitHub's base is right for the release flow, and a flag that sometimes prompts has no clean spelling
   for "pick one".
+- **`ticket`:** creates or updates the release ticket from a Go `text/template`, by default
+  `.github/release-changes/ticket.md.tmpl`, looked up as `--template`, the local checkout's root (not with `-R`;
+  uncommitted edits count), the default branch through the contents API, then a built-in default. The root is
+  `git rev-parse --show-toplevel`, else the nearest `.git` or `.jj` above, else `$GITHUB_WORKSPACE` in Actions.
+  Every `*.tmpl` next to the entry point is a part (`{{ template }}`, or Helm's `include`). Functions are Sprout's
+  without `env`, `filesystem`, `backward` and the deprecated `regexp`; data is `.Repo`, `.Tag`, `.Version`,
+  `.PreviousTag`, `.Issues`, `.Items` and `.Vars` (`--var`, last wins), with `missingkey=error`. **Title and
+  labels default from YAML front matter** in the entry point (not a sibling config: it travels with the template
+  through every source), else `Release {{ .Version }}` and `release`. The ticket is found by every label plus
+  the release version (`semver.Release`: `v1.4.0-rc.2` → `1.4.0`) as a whole version in the title, open or
+  closed; more than one is `ErrTicketAmbiguous`. An update rewrites the title and the part between
+  `<!-- gh-release-changes:start -->` and `<!-- gh-release-changes:end -->` (a template without them is wrapped
+  whole) and leaves the labels. `--since-final` and `--unlinked` are on by default; **`--link closing` is not**,
+  as for every command — `--link` has no way to be turned off again. The ticket repo is `--create-in` (not
+  `--ticket-repo`, which meant `--relative-to` up to v0.3), default the source repo, and `--relative-to`
+  defaults to it. On a TTY the ticket is shown and confirmed; `--yes` skips that, `--dry-run` prints it, and
+  neither without a TTY is `ErrInteractiveRequired`. `ticket init` writes a starter set to the root.
 - **`.github/release.yml`:** `generate-notes` reads it by default. PRs it excludes are considered not worth
   mentioning and stay out. Its categories only add `###` headings above the same `* … by @… in …` lines, and the
   parser ignores headings, so the CLI works with or without the file. The target repo has none today; a fixture
@@ -177,7 +196,11 @@ gh release-changes [-R owner/repo]              default: the repository of the c
 ├── check-notes [<tag>] --file <path>           release notes against the issues of the release
 │     [--scope-issue-repo owner/repo]           default: the source repo
 │     [--relative-to owner/repo]                default: the source repo
-├── ticket [<tag>]                              (later) create/update the release issue
+├── ticket [<tag>]                              create/update the release issue
+│     [--create-in [host/]owner/repo]           default: the source repo
+│     [--template <path>] [--title <template>] [--label <name>] [--var key=value]
+│     [--dry-run | --yes]
+│   └── init [--dir <path>] [--force] [--stdout] write a starter template
 └── version
 ```
 
@@ -188,7 +211,7 @@ gh release-changes [-R owner/repo]              default: the repository of the c
 | `issues`      | Plain issue list per group                                                    | `sort-release-changes`                   |
 | `dump`        | Issue details, comments and linked PRs for the LLM                            | `write-release-notes`, `write-changelog` |
 | `check-notes` | The issues missing from release notes, and the references outside the release | skills, automation                       |
-| `ticket`      | (later) create/update the release issue in the ticket repo                    | automation                               |
+| `ticket`      | Create/update the release issue in the ticket repo; its URL on stdout         | automation                               |
 
 The product of every command goes to stdout; everything else — progress, warnings, errors — goes to stderr, so
 `gh release-changes sort v1.2.0 > notes.md` captures only the notes.
@@ -313,6 +336,8 @@ gh-release-changes/
     │   ├── issues.go
     │   ├── dump.go
     │   ├── checknotes.go         # release notes against the issues of the release
+    │   ├── ticket.go             # the release ticket: template lookup, find, create, update
+    │   ├── ticketinit.go         # ticket init: the starter template
     │   ├── notes.go              # hidden: the raw generated body, for debugging
     │   └── version.go
     ├── github/                   # the only package that talks to GitHub, through go-gh
@@ -320,15 +345,17 @@ gh-release-changes/
     │   ├── notes.go              # tag existence check, generate-notes
     │   ├── tags.go               # tag listing for the picker
     │   ├── issues.go             # issue / PR details for dump
-    │   └── closing.go            # the issues each pull request closes, for --link closing
+    │   ├── closing.go            # the issues each pull request closes, for --link closing
+    │   └── ticket.go             # ticket templates (contents API), find/create/update the ticket issue
+    ├── checkout/                 # the local checkout: repository root, templates on disk
     ├── changes/                  # pure, no network
     │   ├── item.go               # Item, Group, Release — the items JSON contract
     │   ├── parse.go              # generated-notes body → []Item (the parser rules)
     │   ├── sort.go               # grouping, ordering, issue deduplication
     │   ├── link.go               # the closing issues merged into the items (--link closing)
     │   └── notes.go              # references in release notes, compared with the release
-    ├── render/                   # pure: Release → sort Markdown, issue list, dump Markdown
-    ├── semver/                   # pure: tag ordering for the picker
+    ├── render/                   # pure: Release → sort Markdown, issue list, dump Markdown, ticket template
+    ├── semver/                   # pure: tag ordering, a release's version (Masterminds/semver)
     └── util/
         ├── exit/                 # exit codes
         └── output/               # Writer for stderr diagnostics, slog setup, TTY detection
@@ -381,6 +408,10 @@ Cobra's own error print and the usage block on runtime failures are silenced.
 | `ErrForbidden`           | `forbidden`            |
 | `ErrInteractiveRequired` | `interactive_required` |
 | `ErrInvalidRepoRef`      | `invalid_repo_ref`     |
+| `ErrTemplate`            | `template`             |
+| `ErrTemplateExists`      | `template_exists`      |
+| `ErrNoRepoRoot`          | `no_repo_root`         |
+| `ErrTicketAmbiguous`     | `ticket_ambiguous`     |
 
 **Adding a sentinel means adding a row here, a `KindOf` case, and an entry in the `allSentinels` test table**,
 which parses the package source for exported `Err*` variables so an untabled sentinel fails the build.
@@ -410,6 +441,9 @@ never reads, stores, or prints a token.
 creates nothing. Users with read-only access cannot use the tool on a repo, and a future CI token needs
 `contents: write`. The 403 error (`ErrForbidden`) says so rather than only that the call was forbidden.
 
+`ticket` also needs **Issues: write** on the repository it writes the ticket to. `ErrForbidden`'s own message is
+just `forbidden`: each call site adds the permission it needs, so the kind stays `forbidden` for both.
+
 ---
 
 ## Testing strategy
@@ -432,12 +466,15 @@ Determinism deserves an explicit test: the same body parsed and rendered twice g
 
 ## Dependencies
 
-| Package                   | Purpose                                     | Shared with labelsync             |
-|---------------------------|---------------------------------------------|-----------------------------------|
-| `github.com/spf13/cobra`  | Command tree                                | yes                               |
-| `github.com/cli/go-gh/v2` | Repo resolution, REST/GraphQL clients, auth | yes (auth only there)             |
-| `charm.land/huh/v2`       | The tag picker (filterable select)          | yes                               |
-| `golang.org/x/term`       | TTY detection for the non-interactive guard | no (`charmbracelet/x/term` there) |
+| Package                            | Purpose                                     | Shared with labelsync             |
+|------------------------------------|---------------------------------------------|-----------------------------------|
+| `github.com/spf13/cobra`           | Command tree                                | yes                               |
+| `github.com/cli/go-gh/v2`          | Repo resolution, REST/GraphQL clients, auth | yes (auth only there)             |
+| `charm.land/huh/v2`                | The tag picker (filterable select)          | yes                               |
+| `golang.org/x/term`                | TTY detection for the non-interactive guard | no (`charmbracelet/x/term` there) |
+| `github.com/go-sprout/sprout`      | The ticket template's functions (#1)        | no                                |
+| `github.com/Masterminds/semver/v3` | Version parsing and precedence              | no (specs-cli uses it)            |
+| `go.yaml.in/yaml/v3`               | The ticket template's front matter          | no                                |
 
 Anything beyond these is proposed in the issue that needs it.
 

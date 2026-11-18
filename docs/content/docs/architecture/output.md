@@ -5,7 +5,8 @@ weight: 3
 
 ## stdout is the product
 
-A command writes its product — Markdown or JSON — to `App.Stdout` as-is. Everything else goes through
+A command writes its product — Markdown or JSON, or for `ticket` the URL of the issue it wrote — to
+`App.Stdout` as-is. Everything else goes through
 `output.Writer` on stderr:
 
 | Method     | Line                   |
@@ -36,8 +37,10 @@ repository exists is GitHub's answer.
 
 ## TTY detection
 
-`output.IsTTY(stream)` backs the non-interactive guard: the tag picker is only shown when stdin and stdout are
-terminals, and otherwise a missing tag fails with `ErrInteractiveRequired`. The picker itself draws on stderr
+`output.IsTTY(stream)` backs the non-interactive guard: the tag picker and `ticket`'s confirmation are only shown
+when stdin and stdout are terminals, and otherwise a missing tag, or a ticket write without `--yes`, fails with
+`ErrInteractiveRequired`. The confirmation is a `huh` Confirm behind the `App.Confirm` seam, as the picker is
+behind `App.PickTag`. The picker itself draws on stderr
 (`App.Stderr`) and reads `App.Stdin`, both rebuilt from the command's own streams like `Stdout`. It uses the isatty ioctl
 (`golang.org/x/term`), not the file mode — `/dev/null` is a character device too.
 

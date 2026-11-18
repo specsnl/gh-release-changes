@@ -69,6 +69,32 @@ type TagSource interface {
 	Tags(ctx context.Context) ([]string, error)
 }
 
+// TemplateSource reads the ticket templates from the default branch of the
+// source repository. *github.Client is the implementation; a test substitutes
+// a fake.
+type TemplateSource interface {
+	// TicketTemplates reads the *.tmpl files of dir, keyed by file name; nil
+	// when dir does not exist.
+	TicketTemplates(ctx context.Context, dir string) (map[string]string, error)
+
+	Repo() string
+}
+
+// TicketTarget finds, creates and updates the release ticket in the repository
+// it is written to. *github.Client is the implementation; a test substitutes a
+// fake.
+type TicketTarget interface {
+	Tickets(ctx context.Context, labels []string) ([]github.Ticket, error)
+	CreateTicket(ctx context.Context, title, body string, labels []string) (github.Ticket, error)
+	UpdateTicket(ctx context.Context, number int, title, body string) (github.Ticket, error)
+
+	Repo() string
+}
+
+// Confirmer asks a yes-or-no question. Like [TagPicker] it is a seam: a test
+// that supplies one declares that the run can be asked.
+type Confirmer func(ctx context.Context, question string) (bool, error)
+
 // TagPicker asks which of tags to use; they are in picker order already.
 //
 // It is the seam the interactive prompt is replaced through. A test that
@@ -140,9 +166,21 @@ type App struct {
 	// the form of Repo; a test replaces it.
 	NewClosingSource func(repo string) (ClosingSource, error)
 
+	// NewTemplateSource creates the TemplateSource for a repository reference
+	// in the form of Repo; a test replaces it.
+	NewTemplateSource func(repo string) (TemplateSource, error)
+
+	// NewTicketTarget creates the TicketTarget for a repository reference in the
+	// form of Repo; a test replaces it.
+	NewTicketTarget func(repo string) (TicketTarget, error)
+
 	// PickTag is the tag picker. Nil means the real huh Select, which is only
 	// shown on a terminal.
 	PickTag TagPicker
+
+	// Confirm asks before ticket writes. Nil means the real huh Confirm, which
+	// is only shown on a terminal.
+	Confirm Confirmer
 }
 
 // NewApp creates an App over the process streams with a silent logger.
@@ -172,6 +210,12 @@ func NewApp() *App {
 			return github.New(repo)
 		},
 		NewClosingSource: func(repo string) (ClosingSource, error) {
+			return github.New(repo)
+		},
+		NewTemplateSource: func(repo string) (TemplateSource, error) {
+			return github.New(repo)
+		},
+		NewTicketTarget: func(repo string) (TicketTarget, error) {
 			return github.New(repo)
 		},
 	}
