@@ -69,6 +69,9 @@ flowchart TD
 
 ## Step by step
 
+The steps as commands. [From your laptop]({{< ref "../guides/from-your-laptop.md" >}}) runs them by hand, with
+the tag picker and the ticket prompt; [the guides]({{< ref "../guides" >}}) move them into CI.
+
 ### 1. Cut the release: `rc.1`
 
 ```shell

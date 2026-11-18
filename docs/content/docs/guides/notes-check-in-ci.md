@@ -1,7 +1,7 @@
 ---
 title: The notes check in CI
 linkTitle: Notes check in CI
-weight: 3
+weight: 4
 ---
 
 Run [`check-notes`]({{< ref "../usage/commands.md#check-notes" >}}) on every pull request that changes the

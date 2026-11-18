@@ -1,7 +1,7 @@
 ---
 title: The release ticket from GitHub Actions
 linkTitle: Ticket from Actions
-weight: 1
+weight: 2
 ---
 
 Run [`ticket`]({{< ref "../usage/ticket.md" >}}) from a workflow on every pushed release tag, so the release

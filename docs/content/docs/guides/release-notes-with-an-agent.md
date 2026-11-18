@@ -1,7 +1,7 @@
 ---
 title: Release notes with an agent
 linkTitle: Notes with an agent
-weight: 2
+weight: 3
 ---
 
 Release notes are written for people who use the product, and that takes judgement: what matters, in which
