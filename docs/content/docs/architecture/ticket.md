@@ -34,6 +34,7 @@ flowchart TD
   F --> G[TicketTarget.Tickets: labels + semver.InTitle]
   G -->|none| H[create]
   G -->|one| I[render.ReplaceGenerated, update]
+  I -->|no markers, --require-markers| K[ErrTicketMarkersMissing]
   G -->|more| J[ErrTicketAmbiguous]
 ```
 
@@ -61,7 +62,8 @@ the contents API, the embedded default — with no second lookup.
 `missingkey=error`, folds the title onto one line, and checks the markers: none wraps the whole body in them,
 one pair in order is kept, anything else is `ErrTemplate`. `ReplaceGenerated` puts that block in place of the
 existing ticket's, from the first start marker to the first end marker after it, and appends it when there is
-no pair. The index arithmetic leaves `\r\n` from GitHub's web editor alone.
+no pair. `planTicket` warns about an append, or, under `--require-markers`, fails with `ErrTicketMarkersMissing`
+before anything is printed or written. The index arithmetic leaves `\r\n` from GitHub's web editor alone.
 
 `TestInitTemplate_UsesEveryField` reflects over `TicketData` and walks the parse trees of the init templates for
 field nodes, so a field added to the data without a use in the starter template fails the build.

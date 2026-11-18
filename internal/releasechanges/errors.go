@@ -59,6 +59,11 @@ var (
 	// ErrTicketAmbiguous is returned when more than one issue matches the
 	// release ticket, so it is unclear which one to update.
 	ErrTicketAmbiguous = errors.New("more than one issue matches the release ticket")
+
+	// ErrTicketMarkersMissing is returned under --require-markers when the
+	// existing ticket has no complete marker pair to replace, where the run would
+	// otherwise append the generated part.
+	ErrTicketMarkersMissing = errors.New("the release ticket has no generated-part markers")
 )
 
 // KindOf returns a stable, machine-readable string identifier for the sentinel
@@ -86,6 +91,8 @@ func KindOf(err error) string {
 		return "no_repo_root"
 	case errors.Is(err, ErrTicketAmbiguous):
 		return "ticket_ambiguous"
+	case errors.Is(err, ErrTicketMarkersMissing):
+		return "ticket_markers_missing"
 	default:
 		return ""
 	}

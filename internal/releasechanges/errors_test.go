@@ -30,6 +30,7 @@ var allSentinels = []struct {
 	{"ErrTemplateExists", releasechanges.ErrTemplateExists, "template_exists"},
 	{"ErrNoRepoRoot", releasechanges.ErrNoRepoRoot, "no_repo_root"},
 	{"ErrTicketAmbiguous", releasechanges.ErrTicketAmbiguous, "ticket_ambiguous"},
+	{"ErrTicketMarkersMissing", releasechanges.ErrTicketMarkersMissing, "ticket_markers_missing"},
 }
 
 func TestKindOf_KnownSentinels(t *testing.T) {
