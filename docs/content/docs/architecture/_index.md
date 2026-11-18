@@ -16,5 +16,7 @@ lands, its behaviour moves from the design plan into this section.
 | [Error Handling]({{< ref "./error-handling.md" >}})       | Sentinel errors, the `%w` wrapping rule, and the kind strings          |
 | [Output & Exit Codes]({{< ref "./output.md" >}})          | `App`, `output.Writer`, the `slog` boundary, TTY detection, exit codes |
 | [Parser]({{< ref "./parser.md" >}})                       | From a `generate-notes` body to classified, sorted items, fixtures     |
+| [GitHub Client]({{< ref "./github.md" >}})                | The go-gh clients, the requests each command makes, error mapping      |
+| [Release Ticket]({{< ref "./ticket.md" >}})               | `ticket` and `ticket init`: the template set, the lookup, the writes   |
 | [Distribution]({{< ref "./distribution.md" >}})           | The release pipeline, the gh extension and the Homebrew casks          |
 | [Library Decisions]({{< ref "./library-decisions.md" >}}) | Every direct dependency, and what it was chosen over                   |

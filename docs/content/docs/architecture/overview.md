@@ -5,7 +5,8 @@ weight: 1
 
 `gh release-changes` reads GitHub's generated notes for a release and renders the same set of changes for each
 audience: a grouped "What's Changed" list, an issue list for the release ticket, and an issue dump for an LLM
-to write release notes from. Every output is derived from the same parsed items, so they can never disagree.
+to write release notes from — and creates the release ticket itself. Every output is derived from the same
+parsed items, so they can never disagree.
 
 Structure, conventions and library choices deliberately mirror
 [`specsnl/labelsync`](https://github.com/specsnl/labelsync). Full rationale:
@@ -19,25 +20,27 @@ gh-release-changes/
 └── internal/
     ├── releasechanges/           # errors.go: sentinels + KindOf()
     ├── cmd/                      # one file per Cobra command; app.go holds App, tag.go the tag picker
-    ├── github/                   # go-gh clients: tag check, generate-notes, tags, issue details
+    ├── github/                   # go-gh clients: tag check, generate-notes, tags, issue details, the ticket
+    ├── checkout/                 # the local checkout: repository root, ticket templates on disk
     ├── changes/                  # Item/Release, Parse(), grouping and sorting, dump's Details — pure
-    ├── render/                   # sort Markdown, issue list, dump Markdown — pure
-    ├── semver/                   # tag ordering for the picker, the previous final release — pure
+    ├── render/                   # sort Markdown, issue list, dump Markdown, the ticket template — pure
+    ├── semver/                   # tag ordering, the previous final release, a release's version — pure
     └── util/
         ├── exit/                 # exit codes, exit.Err, exit.Of
         └── output/               # Writer for stderr diagnostics, slog setup, TTY detection
 ```
 
-| Package                   | Status                                                                                          |
-|---------------------------|-------------------------------------------------------------------------------------------------|
-| `internal/releasechanges` | Built — see [Error Handling]({{< ref "./error-handling.md" >}})                                 |
-| `internal/util/exit`      | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})                                    |
-| `internal/util/output`    | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})                                    |
-| `internal/cmd`            | `App`, the root and its persistent flags, `items`, `sort`, `issues`, `dump`, `version`, `notes` |
-| `internal/changes`        | Built — see [Parser]({{< ref "./parser.md" >}})                                                 |
-| `internal/github`         | Notes, tags, issue details — see [GitHub Client]({{< ref "./github.md" >}})                     |
-| `internal/render`         | `Sort`, `Issues`, `Dump` — see [Commands](#commands)                                            |
-| `internal/semver`         | `Sort`, `PreviousFinal` — see [The tag](#the-tag) and [The base](#the-base)                     |
+| Package                   | Status                                                                                            |
+|---------------------------|---------------------------------------------------------------------------------------------------|
+| `internal/releasechanges` | Built — see [Error Handling]({{< ref "./error-handling.md" >}})                                   |
+| `internal/util/exit`      | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})                                      |
+| `internal/util/output`    | Built — see [Output & Exit Codes]({{< ref "./output.md" >}})                                      |
+| `internal/cmd`            | `App`, the root and its persistent flags, every command                                           |
+| `internal/checkout`       | `Root`, `ReadTemplates` — see [Release Ticket]({{< ref "./ticket.md" >}})                         |
+| `internal/changes`        | Built — see [Parser]({{< ref "./parser.md" >}})                                                   |
+| `internal/github`         | Notes, tags, issue details, the ticket — see [GitHub Client]({{< ref "./github.md" >}})           |
+| `internal/render`         | `Sort`, `Issues`, `Dump`, `CheckNotes`, the ticket template — see [Commands](#commands)           |
+| `internal/semver`         | `Sort`, `PreviousFinal`, `Release`, `InTitle` — see [The tag](#the-tag) and [The base](#the-base) |
 
 ### Why `changes`, `render` and `semver` are isolated
 
@@ -57,6 +60,8 @@ flowchart LR
   D --> F[render: sort]
   D --> G[render: issues]
   D --> H[render: dump]
+  G --> I[render: ticket template]
+  I --> J[github: create or update the issue]
 ```
 
 Only `internal/github` talks to GitHub, through go-gh, so authentication and GHES hosts are gh's.
@@ -72,7 +77,8 @@ Every command that takes a tag takes it as an optional argument, resolved by `Ap
    still the error reported.
 3. The `TagSource` lists the repository's tags, `semver.Sort` orders them, and the `TagPicker` asks.
 
-`semver.Sort` orders semantic versions (an optional `v`, then Semantic Versioning 2.0.0) newest first,
+`semver.Sort` orders semantic versions (an optional `v`, then Semantic Versioning 2.0.0, parsed strictly by
+`Masterminds/semver`) newest first,
 pre-releases included by the specification's precedence rules, then every other tag in reverse lexical order;
 ties go by name, so the order is total. The real picker is a `charm.land/huh/v2` `Select` with type-to-filter
 and 10 visible tags, drawn on stderr because stdout is the product. `App.PickTag` is the test seam, as in
@@ -99,13 +105,14 @@ close, in the issue repository the command passes (its `--scope-issue-repo`, or 
 merges them in with `changes.LinkClosing`; a failure there fails the run. A command then only turns the
 `Release` into its product on stdout:
 
-| Command       | File            | Product                                                                              |
-|---------------|-----------------|--------------------------------------------------------------------------------------|
-| `items`       | `items.go`      | `changes.Release` marshalled as indented JSON                                        |
-| `sort`        | `sort.go`       | `render.Sort`: the grouped "What's Changed" Markdown                                 |
-| `issues`      | `issues.go`     | `render.Issues`, with the `render.IssueRefs` and `render.IssueList` its flags choose |
-| `dump`        | `dump.go`       | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched |
-| `check-notes` | `checknotes.go` | `render.CheckNotes` over the `changes.Coverage` of the notes file                    |
+| Command       | File            | Product                                                                                                              |
+|---------------|-----------------|----------------------------------------------------------------------------------------------------------------------|
+| `items`       | `items.go`      | `changes.Release` marshalled as indented JSON                                                                        |
+| `sort`        | `sort.go`       | `render.Sort`: the grouped "What's Changed" Markdown                                                                 |
+| `issues`      | `issues.go`     | `render.Issues`, with the `render.IssueRefs` and `render.IssueList` its flags choose                                 |
+| `dump`        | `dump.go`       | `render.Dump` over the `Release` and the `changes.Details` a `DetailsSource` fetched                                 |
+| `check-notes` | `checknotes.go` | `render.CheckNotes` over the `changes.Coverage` of the notes file                                                    |
+| `ticket`      | `ticket.go`     | The URL of the issue it created or updated from the ticket template; see [Release Ticket]({{< ref "./ticket.md" >}}) |
 
 `dump` makes a second request after the notes: it asks the `DetailsSource` for every issue the items reference
 (`changes.ReferencedIssues`) and for the features and fixes without one (`changes.Untracked`). `Untracked`
@@ -130,7 +137,7 @@ the same way in both.
 `TitleSource` for the titles of `changes.ReferencedIssues` in the `--scope-issue-repo` repository, and hands them
 to `render.Issues` as a plain `map[int]string`. A title that could not be read is left out of the map, so its
 issue keeps its bare reference; it is warned about after the product is written and the run exits `4`, as for
-`dump`.
+`dump`. `ticket --titles` shares that fetch, `App.issueTitles`, and its warnings and exit, `App.warnUnreadableTitles`.
 
 Command tests drive the whole tree with a fake `NotesSource` answering with the parser's fixtures, and compare
 stdout with golden files under `internal/cmd/testdata/<command>/`; `go test ./internal/cmd -update` rewrites

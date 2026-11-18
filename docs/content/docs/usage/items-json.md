@@ -1,7 +1,7 @@
 ---
 title: The items JSON
 linkTitle: The items JSON
-weight: 3
+weight: 4
 ---
 
 `gh release-changes items <tag>` prints one JSON object, indented with two spaces, to stdout. It is an object

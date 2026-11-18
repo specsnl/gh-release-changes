@@ -14,6 +14,7 @@ gh release-changes [flags] <command> [<tag>]
 |-------------------------------------------------------|-----------------------------------------------------------|
 | [Getting started]({{< ref "./getting-started.md" >}}) | Install, authenticate, first run                          |
 | [Commands]({{< ref "./commands.md" >}})               | Every command and flag                                    |
+| [The release ticket]({{< ref "./ticket.md" >}})       | `ticket` and `ticket init`: templates, data, functions    |
 | [The `items` JSON]({{< ref "./items-json.md" >}})     | The JSON contract: fields, groups, and what is stable     |
 | [Exit codes]({{< ref "./exit-codes.md" >}})           | `0`, `1` and the outcome bit `4`, and what each one means |
 
@@ -21,4 +22,4 @@ gh release-changes [flags] <command> [<tag>]
 
 **stdout is the product; stderr is everything else.** The Markdown or JSON a command produces goes to stdout
 as-is; progress, warnings, errors and `--debug` diagnostics go to stderr, so
-`gh release-changes sort v1.2.0 > notes.md` captures only the notes.
+`gh release-changes sort v1.2.0 > notes.md` captures only the notes. `ticket` writes an issue, and prints its URL.
