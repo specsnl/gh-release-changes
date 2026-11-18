@@ -132,16 +132,6 @@ to `render.Issues` as a plain `map[int]string`. A title that could not be read i
 issue keeps its bare reference; it is warned about after the product is written and the run exits `4`, as for
 `dump`.
 
-### Renamed flags
-
-A flag that shipped under another name keeps that name as a hidden alias until it is removed:
-`internal/cmd/renamed.go` lists each old name with its replacement. `addRenamedFlags` defines the old name over
-the same `pflag.Value` as the new one, so a command only ever reads the new flag, and marks the two mutually
-exclusive. `App.resolveFlags` calls `warnRenamedFlags`, which warns through `output.Writer` for every old name a
-run was given. pflag's own `MarkDeprecated` is not used: its notice goes to the flag set's output rather than
-the `Writer`. Today that is `--issue-repo` (now `--scope-issue-repo`) and `--ticket-repo` (now `--relative-to`),
-due for removal in [#44](https://github.com/specsnl/gh-release-changes/issues/44).
-
 Command tests drive the whole tree with a fake `NotesSource` answering with the parser's fixtures, and compare
 stdout with golden files under `internal/cmd/testdata/<command>/`; `go test ./internal/cmd -update` rewrites
 them. A command that prints a renderer's output unchanged is compared with that renderer's golden files instead.

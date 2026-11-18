@@ -233,11 +233,6 @@ error: invalid repository reference: want [HOST/]OWNER/REPO: --scope-issue-repo 
 (an issue reference takes OWNER/REPO, without a host)
 ```
 
-**Renamed flags.** `--scope-issue-repo` and `--relative-to` were called `--issue-repo` and `--ticket-repo` up
-to v0.2. The old names are hidden from the help but still work, with a warning on stderr; they will be removed
-in a later release ([#44](https://github.com/specsnl/gh-release-changes/issues/44)). Giving a flag under both
-names is an error.
-
 ### Line formats
 
 By default a line is a bullet with the bare reference, `* #12`: GitHub expands it with the issue's title and
@@ -439,4 +434,4 @@ question, not a failure: branch on it with `(( code & 2 ))`.
 - The report writes its references relative to the `--relative-to` repository, as `issues` does.
 - `--file` is required; a file that cannot be read fails the run with exit code `1` before the release is
   fetched. The repository flags take `OWNER/REPO` without a host and are checked first, with the same error as
-  for `issues`; their old names `--issue-repo` and `--ticket-repo` also still work here.
+  for `issues`.
