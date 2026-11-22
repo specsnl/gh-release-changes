@@ -8,7 +8,7 @@ require (
 	github.com/cli/go-gh/v2 v2.17.0
 	github.com/go-sprout/sprout v1.1.2
 	github.com/spf13/cobra v1.10.2
-	go.yaml.in/yaml/v3 v3.0.5
+	go.yaml.in/yaml/v3 v3.0.6
 	golang.org/x/term v0.48.0
 )
 
